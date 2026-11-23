@@ -1,0 +1,272 @@
+pi 1.5.0   模型 magpie / minimax-code-global/MiniMax-M3.1-Flash
+私有配置目录 /tmp/think-lab-ukdqhn34（你的 models.json、auth.json 的副本 + 最小的 settings.json，跑完删除；pi-adaptive 的副本里给这个模型条目加了 compat.forceAdaptiveThinking）
+api 路径：http://127.0.0.1:3425/v1/chat/completions   模型 minimax-code-global/MiniMax-M3.1-Flash
+注意：models.json 里这个模型单独指定了 anthropic-messages（pi 走那条路）；mini_agent 只会说 OpenAI 接口，所以改走 provider 的入口。同一个网关、同一个模型名，但不是同一条路。
+单价（每百万 token）：新输入 $0.15，缓存读 $0.015，输出 $0.6（输出是缓存读的 40 倍）
+共 108 次请求（3 条路径 × 4 个档位 × 3 个任务 × 3 次），同时跑 3 个；花费上限 $0.30。第一行出来之前先等几秒。
+
+[  1/108] pi-budget   ok      low    #1  输出    11（思考 9）    1.2 秒  回 'OK'  $0.000023
+[  2/108] api         ok      low    #1  输出    11（思考 0）    1.7 秒  回 'OK'  $0.000010
+[  3/108] pi-budget   ok      medium #1  输出     3（思考 0）    0.7 秒  回 'OK'  $0.000019
+[  4/108] pi-adaptive ok      medium #1  输出     3（思考 0）    0.7 秒  回 'OK'  $0.000019
+[  5/108] pi-adaptive ok      low    #1  输出     3（思考 0）    2.7 秒  回 'OK'  $0.000019
+[  6/108] api         ok      medium #1  输出    11（思考 0）    0.9 秒  回 'OK'  $0.000011
+[  7/108] pi-budget   ok      high   #1  输出     3（思考 0）    0.7 秒  回 'OK'  $0.000019
+[  8/108] pi-adaptive ok      high   #1  输出     3（思考 0）    0.7 秒  回 'OK'  $0.000019
+[  9/108] api         ok      high   #1  输出     3（思考 0）    1.1 秒  回 'OK'  $0.000016
+[ 10/108] pi-budget   ok      max    #1  输出     9（思考 7）    0.7 秒  回 'OK'  $0.000022
+[ 11/108] pi-adaptive ok      max    #1  输出     3（思考 0）    0.7 秒  回 'OK'  $0.000019
+[ 12/108] api         ok      max    #1  输出    12（思考 0）    1.1 秒  回 'OK'  $0.000012
+[ 13/108] pi-budget   count   low    #1  输出    58（思考 54）    1.4 秒  答 401 ✓  $0.000058
+[ 14/108] pi-adaptive count   low    #1  输出    78（思考 74）    1.5 秒  答 401 ✓  $0.000051
+[ 15/108] api         count   low    #1  输出    79（思考 0）    1.6 秒  答 401 ✓  $0.000085
+[ 16/108] pi-budget   count   medium #1  输出    56（思考 52）    1.1 秒  答 401 ✓  $0.000056
+[ 17/108] pi-adaptive count   medium #1  输出    82（思考 78）    1.4 秒  答 401 ✓  $0.000053
+[ 18/108] pi-budget   count   high   #1  输出    92（思考 88）    1.5 秒  答 401 ✓  $0.000078
+[ 19/108] pi-adaptive count   high   #1  输出   103（思考 99）    1.5 秒  答 401 ✓  $0.000066
+[ 20/108] pi-budget   count   max    #1  输出   114（思考 110）    1.3 秒  答 401 ✓  $0.000073
+[ 21/108] api         count   medium #1  输出    67（思考 0）    4.5 秒  答 401 ✓  $0.000078
+[ 22/108] pi-adaptive count   max    #1  输出   128（思考 124）    1.7 秒  答 401 ✓  $0.000100
+[ 23/108] api         count   high   #1  输出   113（思考 0）    4.5 秒  答 401 ✓  $0.000105
+[ 24/108] api         count   max    #1  输出   118（思考 0）    4.3 秒  答 401 ✓  $0.000108
+[ 25/108] pi-budget   subsets low    #1  输出   476（思考 472）    7.3 秒  答 12 ✓  $0.000307
+[ 26/108] pi-adaptive subsets low    #1  输出   531（思考 527）    7.5 秒  答 12 ✓  $0.000323
+[ 27/108] api         subsets low    #1  输出   567（思考 0）    6.0 秒  答 12 ✓  $0.000358
+[ 28/108] pi-budget   subsets medium #1  输出   427（思考 423）    3.9 秒  答 12 ✓  $0.000277
+[ 29/108] pi-adaptive subsets medium #1  输出   454（思考 450）    3.8 秒  答 12 ✓  $0.000276
+[ 30/108] pi-budget   subsets high   #1  输出   684（思考 680）    5.3 秒  答 12 ✓  $0.000431
+[ 31/108] api         subsets medium #1  输出   620（思考 0）    9.1 秒  答 12 ✓  $0.000390
+[ 32/108] pi-adaptive subsets high   #1  输出   779（思考 775）    5.5 秒  答 12 ✓  $0.000471
+[ 33/108] pi-budget   subsets max    #1  输出   504（思考 500）    3.6 秒  答 12 ✓  $0.000306
+[ 34/108] pi-adaptive subsets max    #1  输出   712（思考 708）    5.0 秒  答 12 ✓  $0.000448
+[ 35/108] api         subsets high   #1  输出   581（思考 0）    7.5 秒  答 12 ✓  $0.000367
+[ 36/108] pi-budget   ok      low    #2  输出    10（思考 8）    1.5 秒  回 'OK'  $0.000023
+[ 37/108] api         ok      low    #2  输出     3（思考 0）    0.8 秒  回 'OK'  $0.000005
+[ 38/108] pi-adaptive ok      low    #2  输出     3（思考 0）    0.8 秒  回 'OK'  $0.000019
+[ 39/108] pi-budget   ok      medium #2  输出    12（思考 10）    0.7 秒  回 'OK'  $0.000024
+[ 40/108] pi-adaptive ok      medium #2  输出     3（思考 0）    1.2 秒  回 'OK'  $0.000019
+[ 41/108] api         ok      medium #2  输出    10（思考 0）    0.8 秒  回 'OK'  $0.000009
+[ 42/108] pi-budget   ok      high   #2  输出    11（思考 9）    0.8 秒  回 'OK'  $0.000023
+[ 43/108] api         subsets max    #1  输出   865（思考 0）    7.3 秒  答 12 ✓  $0.000537
+[ 44/108] pi-adaptive ok      high   #2  输出    11（思考 9）    1.5 秒  回 'OK'  $0.000023
+[ 45/108] api         ok      high   #2  输出    11（思考 0）    1.1 秒  回 'OK'  $0.000010
+[ 46/108] pi-budget   ok      max    #2  输出     3（思考 0）    0.7 秒  回 'OK'  $0.000019
+[ 47/108] api         ok      max    #2  输出     3（思考 0）    0.7 秒  回 'OK'  $0.000005
+[ 48/108] pi-budget   count   low    #2  输出    57（思考 53）    1.5 秒  答 401 ✓  $0.000038
+[ 49/108] pi-adaptive count   low    #2  输出    53（思考 49）    1.4 秒  答 401 ✓  $0.000036
+[ 50/108] api         count   low    #2  输出   114（思考 0）    1.6 秒  答 401 ✓  $0.000106
+[ 51/108] pi-adaptive ok      max    #2  输出     3（思考 0）    3.8 秒  回 'OK'  $0.000019
+[ 52/108] pi-budget   count   medium #2  输出    53（思考 49）    1.8 秒  答 401 ✓  $0.000036
+[ 53/108] api         count   medium #2  输出   115（思考 0）    1.6 秒  答 401 ✓  $0.000106
+[ 54/108] pi-adaptive count   medium #2  输出    99（思考 95）    1.6 秒  答 401 ✓  $0.000064
+[ 55/108] pi-budget   count   high   #2  输出   103（思考 99）    2.4 秒  答 401 ✓  $0.000066
+[ 56/108] api         count   high   #2  输出   113（思考 0）    1.5 秒  答 401 ✓  $0.000105
+[ 57/108] pi-adaptive count   high   #2  输出    98（思考 94）    1.6 秒  答 401 ✓  $0.000063
+[ 58/108] pi-adaptive count   max    #2  输出   139（思考 135）    1.6 秒  答 401 ✓  $0.000088
+[ 59/108] pi-budget   count   max    #2  输出   100（思考 96）    1.7 秒  答 401 ✓  $0.000064
+[ 60/108] api         count   max    #2  输出   116（思考 0）    1.8 秒  答 401 ✓  $0.000107
+[ 61/108] api         subsets low    #2  输出   463（思考 0）    3.9 秒  答 12 ✓  $0.000296
+[ 62/108] pi-budget   subsets low    #2  输出   634（思考 630）    4.1 秒  答 16 ✗  $0.000384
+[ 63/108] pi-adaptive subsets low    #2  输出   544（思考 540）    4.1 秒  答 12 ✓  $0.000330
+[ 64/108] pi-adaptive subsets medium #2  输出   631（思考 627）    4.3 秒  答 12 ✓  $0.000383
+[ 65/108] pi-budget   subsets medium #2  输出   759（思考 755）    5.7 秒  答 12 ✓  $0.000459
+[ 66/108] pi-budget   subsets high   #2  输出   519（思考 515）    3.4 秒  答 12 ✓  $0.000315
+[ 67/108] api         subsets medium #2  输出  1145（思考 0）    9.1 秒  答 8 ✗  $0.000705
+[ 68/108] pi-adaptive subsets high   #2  输出   503（思考 499）    4.5 秒  答 12 ✓  $0.000306
+[ 69/108] pi-budget   subsets max    #2  输出   547（思考 543）    3.7 秒  答 12 ✓  $0.000332
+[ 70/108] api         subsets high   #2  输出   688（思考 0）    6.7 秒  答 12 ✓  $0.000431
+[ 71/108] pi-adaptive subsets max    #2  输出   629（思考 624）    4.3 秒  答 12 ✓  $0.000381
+[ 72/108] pi-adaptive ok      low    #3  输出     3（思考 0）    0.7 秒  回 'OK'  $0.000019
+[ 73/108] api         ok      low    #3  输出    11（思考 0）    0.8 秒  回 'OK'  $0.000010
+[ 74/108] pi-budget   ok      medium #3  输出     3（思考 0）    0.6 秒  回 'OK'  $0.000019
+[ 75/108] api         subsets max    #2  输出   441（思考 0）    4.6 秒  答 12 ✓  $0.000283
+[ 76/108] pi-budget   ok      low    #3  输出    11（思考 9）    3.2 秒  回 'OK'  $0.000023
+[ 77/108] api         ok      medium #3  输出    11（思考 0）    1.0 秒  回 'OK'  $0.000010
+[ 78/108] pi-adaptive ok      medium #3  输出    11（思考 9）    0.9 秒  回 'OK'  $0.000023
+[ 79/108] api         ok      high   #3  输出    11（思考 0）    0.9 秒  回 'OK'  $0.000010
+[ 80/108] pi-adaptive ok      high   #3  输出     3（思考 0）    0.9 秒  回 'OK'  $0.000019
+[ 81/108] pi-budget   ok      max    #3  输出     3（思考 0）    0.8 秒  回 'OK'  $0.000019
+[ 82/108] pi-adaptive ok      max    #3  输出    12（思考 10）    0.7 秒  回 'OK'  $0.000024
+[ 83/108] pi-budget   ok      high   #3  输出     3（思考 0）    3.1 秒  回 'OK'  $0.000019
+[ 84/108] api         ok      max    #3  输出     3（思考 0）    1.8 秒  回 'OK'  $0.000005
+[ 85/108] pi-budget   count   low    #3  输出    70（思考 66）    1.8 秒  答 401 ✓  $0.000046
+[ 86/108] pi-adaptive count   low    #3  输出   118（思考 114）    1.8 秒  答 401 ✓  $0.000075
+[ 87/108] api         count   low    #3  输出   122（思考 0）    1.7 秒  答 401 ✓  $0.000111
+[ 88/108] pi-budget   count   medium #3  输出    88（思考 84）    1.6 秒  答 401 ✓  $0.000057
+[ 89/108] api         count   medium #3  输出    84（思考 0）    1.5 秒  答 401 ✓  $0.000088
+[ 90/108] pi-adaptive count   medium #3  输出   134（思考 130）    2.1 秒  答 401 ✓  $0.000085
+[ 91/108] pi-budget   count   high   #3  输出   130（思考 126）    1.6 秒  答 401 ✓  $0.000082
+[ 92/108] pi-adaptive count   high   #3  输出    93（思考 89）    1.4 秒  答 401 ✓  $0.000060
+[ 93/108] api         count   high   #3  输出    79（思考 0）    1.5 秒  答 401 ✓  $0.000085
+[ 94/108] pi-budget   count   max    #3  输出    92（思考 88）    1.3 秒  答 401 ✓  $0.000059
+[ 95/108] pi-adaptive count   max    #3  输出    86（思考 82）    1.4 秒  答 401 ✓  $0.000056
+[ 96/108] api         count   max    #3  输出   109（思考 0）    2.7 秒  答 401 ✓  $0.000103
+[ 97/108] pi-budget   subsets low    #3  输出   658（思考 654）    5.6 秒  答 12 ✓  $0.000399
+[ 98/108] pi-adaptive subsets low    #3  输出   580（思考 576）    4.8 秒  答 12 ✓  $0.000352
+[ 99/108] pi-budget   subsets medium #3  输出   519（思考 514）    3.5 秒  答 12 ✓  $0.000315
+[100/108] pi-adaptive subsets medium #3  输出   570（思考 566）    4.1 秒  答 12 ✓  $0.000346
+[101/108] pi-budget   subsets high   #3  输出   589（思考 585）    3.9 秒  答 12 ✓  $0.000357
+[102/108] api         subsets low    #3  输出   526（思考 0）   14.0 秒  答 12 ✓  $0.000334
+[103/108] api         subsets medium #3  输出   512（思考 0）    6.7 秒  答 12 ✓  $0.000325
+[104/108] pi-adaptive subsets high   #3  输出   604（思考 600）    3.9 秒  答 12 ✓  $0.000366
+[105/108] api         subsets high   #3  输出   523（思考 0）    4.6 秒  答 12 ✓  $0.000332
+[106/108] pi-budget   subsets max    #3  输出   623（思考 619）    3.9 秒  答 12 ✓  $0.000378
+[107/108] pi-adaptive subsets max    #3  输出   667（思考 663）    3.9 秒  答 12 ✓  $0.000404
+[108/108] api         subsets max    #3  输出   672（思考 0）   12.8 秒  答 12 ✓  $0.000421
+
+== 汇总一：输出 token（含思考），每格的中位数（括号里是最小–最大，n 是成功的次数）
+path        level   ok                         count                      subsets                   
+pi-budget   low     11 (10-11) n=3             58 (57-70) n=3             634 (476-658) n=3         
+pi-budget   medium  3 (3-12) n=3               56 (53-88) n=3             519 (427-759) n=3         
+pi-budget   high    3 (3-11) n=3               103 (92-130) n=3           589 (519-684) n=3         
+pi-budget   max     3 (3-9) n=3                100 (92-114) n=3           547 (504-623) n=3         
+pi-adaptive low     3 (3-3) n=3                78 (53-118) n=3            544 (531-580) n=3         
+pi-adaptive medium  3 (3-11) n=3               99 (82-134) n=3            570 (454-631) n=3         
+pi-adaptive high    3 (3-11) n=3               98 (93-103) n=3            604 (503-779) n=3         
+pi-adaptive max     3 (3-12) n=3               128 (86-139) n=3           667 (629-712) n=3         
+api         low     11 (3-11) n=3              114 (79-122) n=3           526 (463-567) n=3         
+api         medium  11 (10-11) n=3             84 (67-115) n=3            620 (512-1145) n=3        
+api         high    11 (3-11) n=3              113 (79-113) n=3           581 (523-688) n=3         
+api         max     3 (3-12) n=3               116 (109-118) n=3          672 (441-865) n=3         
+
+== 汇总二：谜题答对 / 次数，谜题的中位耗时（秒），花费合计
+path        level   count    subsets  secs       cost      
+pi-budget   low     3/3      2/3      2.9        $0.00130  
+pi-budget   medium  3/3      3/3      2.6        $0.00126  
+pi-budget   high    3/3      3/3      2.9        $0.00139  
+pi-budget   max     3/3      3/3      2.6        $0.00127  
+pi-adaptive low     3/3      3/3      2.9        $0.00122  
+pi-adaptive medium  3/3      3/3      3.0        $0.00127  
+pi-adaptive high    3/3      3/3      2.8        $0.00139  
+pi-adaptive max     3/3      3/3      2.8        $0.00154  
+api         low     3/3      3/3      2.8        $0.00131  
+api         medium  3/3      2/3      5.6        $0.00172  
+api         high    3/3      3/3      4.5        $0.00146  
+api         max     3/3      3/3      4.4        $0.00158  
+
+== 判定（算法事先写好：每格取中位数，R = 两个谜题上 [low 的中位数 ÷ max 的中位数] 的几何平均数）
+  R(pi-budget  ) = 0.82   → 没有效果（0.67–1.5）
+  R(pi-adaptive) = 0.70   → 没有效果（0.67–1.5）
+  R(api        ) = 0.88   → 没有效果（0.67–1.5）
+  噪声检查：pi-budget 的 high ÷ max = 1.05（这两档在线上发出的请求完全相同，所以这个比值只是噪声）→ 在 0.67–1.5 之内，测得出 1.5 倍以上的差别
+  max 档对比：pi-budget ÷ pi-adaptive = 0.80 → 相当（0.67–1.5）
+  对照题 ok：pi-budget 有 0/12 次输出 ≥ 50 token（最大 12）
+  对照题 ok：pi-adaptive 有 0/12 次输出 ≥ 50 token（最大 12）
+  max 档谜题答对：pi-budget 6/6，pi-adaptive 6/6，api 6/6，合计 18/18
+  pi-adaptive：low 档谜题答对 6/6，max 档 6/6
+  api 的 reasoning_tokens：全部为 0；思考文字（reasoning_content 或 <think>）的字符数中位数 673（谜题），输出 token 中位数 281
+  pi 报了思考 token（usage.reasoning > 0）的谜题运行：48/48
+  失败 0 次，空回复 0 次，被截断 0 次（共完成 108 次请求，计划 108 次）
+  本次花费 $0.0167
+
+怎么读：R 越小，说明低档位真的让模型少想了；R 接近 1，说明档位没有改变模型想多久。pi-budget 是你现在的配置，pi-adaptive 是只改了一行配置的版本，api 是不经过 pi 直接问网关。温度固定为 1，每格只有几个样本，别把中位数当精确值。
+
+== 数据（每次运行一行，贴给我的时候别删）
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.34e-05, "empty": false, "inp": 227, "level": "low", "out": 11, "path": "pi-budget", "reasoning": 9, "rep": 1, "secs": 1.2, "stop": "stop", "task": "ok", "think_chars": 30}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "low", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 1, "secs": 2.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 9.9e-06, "empty": false, "inp": 209, "level": "low", "out": 11, "path": "api", "reasoning": 0, "rep": 1, "secs": 1.7, "stop": "stop", "task": "ok", "think_chars": 28}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "medium", "out": 3, "path": "pi-budget", "reasoning": 0, "rep": 1, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "medium", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 1, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 197, "correct": true, "cost": 1.14e-05, "empty": false, "inp": 209, "level": "medium", "out": 11, "path": "api", "reasoning": 0, "rep": 1, "secs": 0.9, "stop": "stop", "task": "ok", "think_chars": 29}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "high", "out": 3, "path": "pi-budget", "reasoning": 0, "rep": 1, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "high", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 1, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.59e-05, "empty": false, "inp": 209, "level": "high", "out": 3, "path": "api", "reasoning": 0, "rep": 1, "secs": 1.1, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.22e-05, "empty": false, "inp": 227, "level": "max", "out": 9, "path": "pi-budget", "reasoning": 7, "rep": 1, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 16}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "max", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 1, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 197, "correct": true, "cost": 1.2e-05, "empty": false, "inp": 209, "level": "max", "out": 12, "path": "api", "reasoning": 0, "rep": 1, "secs": 1.1, "stop": "stop", "task": "ok", "think_chars": 38}
+数据 {"answer": 401, "cached": 128, "correct": true, "cost": 5.76e-05, "empty": false, "inp": 267, "level": "low", "out": 58, "path": "pi-budget", "reasoning": 54, "rep": 1, "secs": 1.4, "stop": "stop", "task": "count", "think_chars": 167}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 5.09e-05, "empty": false, "inp": 267, "level": "low", "out": 78, "path": "pi-adaptive", "reasoning": 74, "rep": 1, "secs": 1.5, "stop": "stop", "task": "count", "think_chars": 223}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 8.48e-05, "empty": false, "inp": 249, "level": "low", "out": 79, "path": "api", "reasoning": 0, "rep": 1, "secs": 1.6, "stop": "stop", "task": "count", "think_chars": 234}
+数据 {"answer": 401, "cached": 128, "correct": true, "cost": 5.64e-05, "empty": false, "inp": 267, "level": "medium", "out": 56, "path": "pi-budget", "reasoning": 52, "rep": 1, "secs": 1.1, "stop": "stop", "task": "count", "think_chars": 168}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 5.33e-05, "empty": false, "inp": 267, "level": "medium", "out": 82, "path": "pi-adaptive", "reasoning": 78, "rep": 1, "secs": 1.4, "stop": "stop", "task": "count", "think_chars": 211}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 7.76e-05, "empty": false, "inp": 249, "level": "medium", "out": 67, "path": "api", "reasoning": 0, "rep": 1, "secs": 4.5, "stop": "stop", "task": "count", "think_chars": 220}
+数据 {"answer": 401, "cached": 128, "correct": true, "cost": 7.8e-05, "empty": false, "inp": 267, "level": "high", "out": 92, "path": "pi-budget", "reasoning": 88, "rep": 1, "secs": 1.5, "stop": "stop", "task": "count", "think_chars": 274}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 6.59e-05, "empty": false, "inp": 267, "level": "high", "out": 103, "path": "pi-adaptive", "reasoning": 99, "rep": 1, "secs": 1.5, "stop": "stop", "task": "count", "think_chars": 279}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 0.0001052, "empty": false, "inp": 249, "level": "high", "out": 113, "path": "api", "reasoning": 0, "rep": 1, "secs": 4.5, "stop": "stop", "task": "count", "think_chars": 330}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 7.25e-05, "empty": false, "inp": 267, "level": "max", "out": 114, "path": "pi-budget", "reasoning": 110, "rep": 1, "secs": 1.3, "stop": "stop", "task": "count", "think_chars": 320}
+数据 {"answer": 401, "cached": 128, "correct": true, "cost": 9.96e-05, "empty": false, "inp": 267, "level": "max", "out": 128, "path": "pi-adaptive", "reasoning": 124, "rep": 1, "secs": 1.7, "stop": "stop", "task": "count", "think_chars": 371}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 0.0001081, "empty": false, "inp": 249, "level": "max", "out": 118, "path": "api", "reasoning": 0, "rep": 1, "secs": 4.3, "stop": "stop", "task": "count", "think_chars": 344}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0003066, "empty": false, "inp": 255, "level": "low", "out": 476, "path": "pi-budget", "reasoning": 472, "rep": 1, "secs": 7.3, "stop": "stop", "task": "subsets", "think_chars": 1164}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003226, "empty": false, "inp": 255, "level": "low", "out": 531, "path": "pi-adaptive", "reasoning": 527, "rep": 1, "secs": 7.5, "stop": "stop", "task": "subsets", "think_chars": 1128}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0003585, "empty": false, "inp": 237, "level": "low", "out": 567, "path": "api", "reasoning": 0, "rep": 1, "secs": 6.0, "stop": "stop", "task": "subsets", "think_chars": 1186}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0002772, "empty": false, "inp": 255, "level": "medium", "out": 427, "path": "pi-budget", "reasoning": 423, "rep": 1, "secs": 3.9, "stop": "stop", "task": "subsets", "think_chars": 1139}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0002764, "empty": false, "inp": 255, "level": "medium", "out": 454, "path": "pi-adaptive", "reasoning": 450, "rep": 1, "secs": 3.8, "stop": "stop", "task": "subsets", "think_chars": 1051}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0003903, "empty": false, "inp": 237, "level": "medium", "out": 620, "path": "api", "reasoning": 0, "rep": 1, "secs": 9.1, "stop": "stop", "task": "subsets", "think_chars": 1544}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0004314, "empty": false, "inp": 255, "level": "high", "out": 684, "path": "pi-budget", "reasoning": 680, "rep": 1, "secs": 5.3, "stop": "stop", "task": "subsets", "think_chars": 1746}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0004714, "empty": false, "inp": 255, "level": "high", "out": 779, "path": "pi-adaptive", "reasoning": 775, "rep": 1, "secs": 5.5, "stop": "stop", "task": "subsets", "think_chars": 1826}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0003669, "empty": false, "inp": 237, "level": "high", "out": 581, "path": "api", "reasoning": 0, "rep": 1, "secs": 7.5, "stop": "stop", "task": "subsets", "think_chars": 1397}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003064, "empty": false, "inp": 255, "level": "max", "out": 504, "path": "pi-budget", "reasoning": 500, "rep": 1, "secs": 3.6, "stop": "stop", "task": "subsets", "think_chars": 1129}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0004482, "empty": false, "inp": 255, "level": "max", "out": 712, "path": "pi-adaptive", "reasoning": 708, "rep": 1, "secs": 5.0, "stop": "stop", "task": "subsets", "think_chars": 1706}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0005373, "empty": false, "inp": 237, "level": "max", "out": 865, "path": "api", "reasoning": 0, "rep": 1, "secs": 7.3, "stop": "stop", "task": "subsets", "think_chars": 2169}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.28e-05, "empty": false, "inp": 227, "level": "low", "out": 10, "path": "pi-budget", "reasoning": 8, "rep": 2, "secs": 1.5, "stop": "stop", "task": "ok", "think_chars": 27}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "low", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 2, "secs": 0.8, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 5.1e-06, "empty": false, "inp": 209, "level": "low", "out": 3, "path": "api", "reasoning": 0, "rep": 2, "secs": 0.8, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.4e-05, "empty": false, "inp": 227, "level": "medium", "out": 12, "path": "pi-budget", "reasoning": 10, "rep": 2, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 37}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "medium", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 2, "secs": 1.2, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 9.3e-06, "empty": false, "inp": 209, "level": "medium", "out": 10, "path": "api", "reasoning": 0, "rep": 2, "secs": 0.8, "stop": "stop", "task": "ok", "think_chars": 26}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.34e-05, "empty": false, "inp": 227, "level": "high", "out": 11, "path": "pi-budget", "reasoning": 9, "rep": 2, "secs": 0.8, "stop": "stop", "task": "ok", "think_chars": 28}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.34e-05, "empty": false, "inp": 227, "level": "high", "out": 11, "path": "pi-adaptive", "reasoning": 9, "rep": 2, "secs": 1.5, "stop": "stop", "task": "ok", "think_chars": 30}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 9.9e-06, "empty": false, "inp": 209, "level": "high", "out": 11, "path": "api", "reasoning": 0, "rep": 2, "secs": 1.1, "stop": "stop", "task": "ok", "think_chars": 30}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "max", "out": 3, "path": "pi-budget", "reasoning": 0, "rep": 2, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "max", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 2, "secs": 3.8, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 5.1e-06, "empty": false, "inp": 209, "level": "max", "out": 3, "path": "api", "reasoning": 0, "rep": 2, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 3.83e-05, "empty": false, "inp": 267, "level": "low", "out": 57, "path": "pi-budget", "reasoning": 53, "rep": 2, "secs": 1.5, "stop": "stop", "task": "count", "think_chars": 146}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 3.59e-05, "empty": false, "inp": 267, "level": "low", "out": 53, "path": "pi-adaptive", "reasoning": 49, "rep": 2, "secs": 1.4, "stop": "stop", "task": "count", "think_chars": 151}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 0.0001057, "empty": false, "inp": 249, "level": "low", "out": 114, "path": "api", "reasoning": 0, "rep": 2, "secs": 1.6, "stop": "stop", "task": "count", "think_chars": 340}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 3.59e-05, "empty": false, "inp": 267, "level": "medium", "out": 53, "path": "pi-budget", "reasoning": 49, "rep": 2, "secs": 1.8, "stop": "stop", "task": "count", "think_chars": 148}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 6.35e-05, "empty": false, "inp": 267, "level": "medium", "out": 99, "path": "pi-adaptive", "reasoning": 95, "rep": 2, "secs": 1.6, "stop": "stop", "task": "count", "think_chars": 276}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 0.0001063, "empty": false, "inp": 249, "level": "medium", "out": 115, "path": "api", "reasoning": 0, "rep": 2, "secs": 1.6, "stop": "stop", "task": "count", "think_chars": 338}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 6.59e-05, "empty": false, "inp": 267, "level": "high", "out": 103, "path": "pi-budget", "reasoning": 99, "rep": 2, "secs": 2.4, "stop": "stop", "task": "count", "think_chars": 326}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 6.29e-05, "empty": false, "inp": 267, "level": "high", "out": 98, "path": "pi-adaptive", "reasoning": 94, "rep": 2, "secs": 1.6, "stop": "stop", "task": "count", "think_chars": 259}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 0.0001052, "empty": false, "inp": 249, "level": "high", "out": 113, "path": "api", "reasoning": 0, "rep": 2, "secs": 1.5, "stop": "stop", "task": "count", "think_chars": 336}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 6.41e-05, "empty": false, "inp": 267, "level": "max", "out": 100, "path": "pi-budget", "reasoning": 96, "rep": 2, "secs": 1.7, "stop": "stop", "task": "count", "think_chars": 301}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 8.75e-05, "empty": false, "inp": 267, "level": "max", "out": 139, "path": "pi-adaptive", "reasoning": 135, "rep": 2, "secs": 1.6, "stop": "stop", "task": "count", "think_chars": 419}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 0.0001069, "empty": false, "inp": 249, "level": "max", "out": 116, "path": "api", "reasoning": 0, "rep": 2, "secs": 1.8, "stop": "stop", "task": "count", "think_chars": 353}
+数据 {"answer": 16, "cached": 254, "correct": false, "cost": 0.0003844, "empty": false, "inp": 255, "level": "low", "out": 634, "path": "pi-budget", "reasoning": 630, "rep": 2, "secs": 4.1, "stop": "stop", "task": "subsets", "think_chars": 1346}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003304, "empty": false, "inp": 255, "level": "low", "out": 544, "path": "pi-adaptive", "reasoning": 540, "rep": 2, "secs": 4.1, "stop": "stop", "task": "subsets", "think_chars": 1496}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0002961, "empty": false, "inp": 237, "level": "low", "out": 463, "path": "api", "reasoning": 0, "rep": 2, "secs": 3.9, "stop": "stop", "task": "subsets", "think_chars": 1031}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0004594, "empty": false, "inp": 255, "level": "medium", "out": 759, "path": "pi-budget", "reasoning": 755, "rep": 2, "secs": 5.7, "stop": "stop", "task": "subsets", "think_chars": 1810}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003826, "empty": false, "inp": 255, "level": "medium", "out": 631, "path": "pi-adaptive", "reasoning": 627, "rep": 2, "secs": 4.3, "stop": "stop", "task": "subsets", "think_chars": 1319}
+数据 {"answer": 8, "cached": 128, "correct": false, "cost": 0.0007053, "empty": false, "inp": 237, "level": "medium", "out": 1145, "path": "api", "reasoning": 0, "rep": 2, "secs": 9.1, "stop": "stop", "task": "subsets", "think_chars": 2507}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003154, "empty": false, "inp": 255, "level": "high", "out": 519, "path": "pi-budget", "reasoning": 515, "rep": 2, "secs": 3.4, "stop": "stop", "task": "subsets", "think_chars": 1194}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003058, "empty": false, "inp": 255, "level": "high", "out": 503, "path": "pi-adaptive", "reasoning": 499, "rep": 2, "secs": 4.5, "stop": "stop", "task": "subsets", "think_chars": 1393}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0004311, "empty": false, "inp": 237, "level": "high", "out": 688, "path": "api", "reasoning": 0, "rep": 2, "secs": 6.7, "stop": "stop", "task": "subsets", "think_chars": 1648}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003322, "empty": false, "inp": 255, "level": "max", "out": 547, "path": "pi-budget", "reasoning": 543, "rep": 2, "secs": 3.7, "stop": "stop", "task": "subsets", "think_chars": 1241}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003814, "empty": false, "inp": 255, "level": "max", "out": 629, "path": "pi-adaptive", "reasoning": 624, "rep": 2, "secs": 4.3, "stop": "stop", "task": "subsets", "think_chars": 1601}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0002829, "empty": false, "inp": 237, "level": "max", "out": 441, "path": "api", "reasoning": 0, "rep": 2, "secs": 4.6, "stop": "stop", "task": "subsets", "think_chars": 992}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.34e-05, "empty": false, "inp": 227, "level": "low", "out": 11, "path": "pi-budget", "reasoning": 9, "rep": 3, "secs": 3.2, "stop": "stop", "task": "ok", "think_chars": 30}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "low", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 3, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 9.9e-06, "empty": false, "inp": 209, "level": "low", "out": 11, "path": "api", "reasoning": 0, "rep": 3, "secs": 0.8, "stop": "stop", "task": "ok", "think_chars": 29}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "medium", "out": 3, "path": "pi-budget", "reasoning": 0, "rep": 3, "secs": 0.6, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.34e-05, "empty": false, "inp": 227, "level": "medium", "out": 11, "path": "pi-adaptive", "reasoning": 9, "rep": 3, "secs": 0.9, "stop": "stop", "task": "ok", "think_chars": 30}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 9.9e-06, "empty": false, "inp": 209, "level": "medium", "out": 11, "path": "api", "reasoning": 0, "rep": 3, "secs": 1.0, "stop": "stop", "task": "ok", "think_chars": 30}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "high", "out": 3, "path": "pi-budget", "reasoning": 0, "rep": 3, "secs": 3.1, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "high", "out": 3, "path": "pi-adaptive", "reasoning": 0, "rep": 3, "secs": 0.9, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 9.9e-06, "empty": false, "inp": 209, "level": "high", "out": 11, "path": "api", "reasoning": 0, "rep": 3, "secs": 0.9, "stop": "stop", "task": "ok", "think_chars": 29}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 1.86e-05, "empty": false, "inp": 227, "level": "max", "out": 3, "path": "pi-budget", "reasoning": 0, "rep": 3, "secs": 0.8, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": "OK", "cached": 128, "correct": true, "cost": 2.4e-05, "empty": false, "inp": 227, "level": "max", "out": 12, "path": "pi-adaptive", "reasoning": 10, "rep": 3, "secs": 0.7, "stop": "stop", "task": "ok", "think_chars": 38}
+数据 {"answer": "OK", "cached": 208, "correct": true, "cost": 5.1e-06, "empty": false, "inp": 209, "level": "max", "out": 3, "path": "api", "reasoning": 0, "rep": 3, "secs": 1.8, "stop": "stop", "task": "ok", "think_chars": 0}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 4.61e-05, "empty": false, "inp": 267, "level": "low", "out": 70, "path": "pi-budget", "reasoning": 66, "rep": 3, "secs": 1.8, "stop": "stop", "task": "count", "think_chars": 188}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 7.49e-05, "empty": false, "inp": 267, "level": "low", "out": 118, "path": "pi-adaptive", "reasoning": 114, "rep": 3, "secs": 1.8, "stop": "stop", "task": "count", "think_chars": 409}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 0.0001106, "empty": false, "inp": 249, "level": "low", "out": 122, "path": "api", "reasoning": 0, "rep": 3, "secs": 1.7, "stop": "stop", "task": "count", "think_chars": 354}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 5.69e-05, "empty": false, "inp": 267, "level": "medium", "out": 88, "path": "pi-budget", "reasoning": 84, "rep": 3, "secs": 1.6, "stop": "stop", "task": "count", "think_chars": 237}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 8.45e-05, "empty": false, "inp": 267, "level": "medium", "out": 134, "path": "pi-adaptive", "reasoning": 130, "rep": 3, "secs": 2.1, "stop": "stop", "task": "count", "think_chars": 433}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 8.78e-05, "empty": false, "inp": 249, "level": "medium", "out": 84, "path": "api", "reasoning": 0, "rep": 3, "secs": 1.5, "stop": "stop", "task": "count", "think_chars": 241}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 8.21e-05, "empty": false, "inp": 267, "level": "high", "out": 130, "path": "pi-budget", "reasoning": 126, "rep": 3, "secs": 1.6, "stop": "stop", "task": "count", "think_chars": 372}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 5.99e-05, "empty": false, "inp": 267, "level": "high", "out": 93, "path": "pi-adaptive", "reasoning": 89, "rep": 3, "secs": 1.4, "stop": "stop", "task": "count", "think_chars": 242}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 8.48e-05, "empty": false, "inp": 249, "level": "high", "out": 79, "path": "api", "reasoning": 0, "rep": 3, "secs": 1.5, "stop": "stop", "task": "count", "think_chars": 248}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 5.93e-05, "empty": false, "inp": 267, "level": "max", "out": 92, "path": "pi-budget", "reasoning": 88, "rep": 3, "secs": 1.3, "stop": "stop", "task": "count", "think_chars": 250}
+数据 {"answer": 401, "cached": 266, "correct": true, "cost": 5.57e-05, "empty": false, "inp": 267, "level": "max", "out": 86, "path": "pi-adaptive", "reasoning": 82, "rep": 3, "secs": 1.4, "stop": "stop", "task": "count", "think_chars": 289}
+数据 {"answer": 401, "cached": 0, "correct": true, "cost": 0.0001028, "empty": false, "inp": 249, "level": "max", "out": 109, "path": "api", "reasoning": 0, "rep": 3, "secs": 2.7, "stop": "stop", "task": "count", "think_chars": 306}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003988, "empty": false, "inp": 255, "level": "low", "out": 658, "path": "pi-budget", "reasoning": 654, "rep": 3, "secs": 5.6, "stop": "stop", "task": "subsets", "think_chars": 1441}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.000352, "empty": false, "inp": 255, "level": "low", "out": 580, "path": "pi-adaptive", "reasoning": 576, "rep": 3, "secs": 4.8, "stop": "stop", "task": "subsets", "think_chars": 1486}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0003339, "empty": false, "inp": 237, "level": "low", "out": 526, "path": "api", "reasoning": 0, "rep": 3, "secs": 14.0, "stop": "stop", "task": "subsets", "think_chars": 1194}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003154, "empty": false, "inp": 255, "level": "medium", "out": 519, "path": "pi-budget", "reasoning": 514, "rep": 3, "secs": 3.5, "stop": "stop", "task": "subsets", "think_chars": 1208}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.000346, "empty": false, "inp": 255, "level": "medium", "out": 570, "path": "pi-adaptive", "reasoning": 566, "rep": 3, "secs": 4.1, "stop": "stop", "task": "subsets", "think_chars": 1275}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0003255, "empty": false, "inp": 237, "level": "medium", "out": 512, "path": "api", "reasoning": 0, "rep": 3, "secs": 6.7, "stop": "stop", "task": "subsets", "think_chars": 1247}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003574, "empty": false, "inp": 255, "level": "high", "out": 589, "path": "pi-budget", "reasoning": 585, "rep": 3, "secs": 3.9, "stop": "stop", "task": "subsets", "think_chars": 1511}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003664, "empty": false, "inp": 255, "level": "high", "out": 604, "path": "pi-adaptive", "reasoning": 600, "rep": 3, "secs": 3.9, "stop": "stop", "task": "subsets", "think_chars": 1372}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0003321, "empty": false, "inp": 237, "level": "high", "out": 523, "path": "api", "reasoning": 0, "rep": 3, "secs": 4.6, "stop": "stop", "task": "subsets", "think_chars": 1327}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0003778, "empty": false, "inp": 255, "level": "max", "out": 623, "path": "pi-budget", "reasoning": 619, "rep": 3, "secs": 3.9, "stop": "stop", "task": "subsets", "think_chars": 1355}
+数据 {"answer": 12, "cached": 254, "correct": true, "cost": 0.0004042, "empty": false, "inp": 255, "level": "max", "out": 667, "path": "pi-adaptive", "reasoning": 663, "rep": 3, "secs": 3.9, "stop": "stop", "task": "subsets", "think_chars": 1369}
+数据 {"answer": 12, "cached": 128, "correct": true, "cost": 0.0004215, "empty": false, "inp": 237, "level": "max", "out": 672, "path": "api", "reasoning": 0, "rep": 3, "secs": 12.8, "stop": "stop", "task": "subsets", "think_chars": 1655}

@@ -1,0 +1,19 @@
+# never commit credentials or machine state
+models.json
+auth.json
+models-store.json
+*.key
+.env
+.env.*
+# python / node / editor noise
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+*.Zone.Identifier
+# local sandbox settings (copy dev/env.sh.example to dev/env.sh)
+dev/env.sh
+# run output of benches and mock gateways
+bench/arena/results/
+bench/arena/runs/
+*.pid

@@ -1,0 +1,4 @@
+# ripgrep / fd / Claude Code's Grep skip these by default; search them explicitly when you need evidence:
+#   rg PATTERN archive/
+archive/
+bench/arena/tasks/

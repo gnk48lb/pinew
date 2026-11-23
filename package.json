@@ -1,0 +1,21 @@
+{
+  "name": "pinew",
+  "version": "1.0.0",
+  "description": "A measured, cache-friendly customization pack for pi (pi.dev): extensions, skills, prompt templates and config.",
+  "keywords": ["pi-package"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/gnk48lb/pinew.git" },
+  "pi": {
+    "extensions": ["./extensions"],
+    "skills": ["./skills"],
+    "prompts": ["./prompts"],
+    "changelogPath": "./CHANGELOG.md"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "lab-base": {
+    "thinkingLevel": "low",
+    "tools": ["read"],
+    "instructions": "Lab preset text A. Keep answers short and plain, and answer in the language of the question."
+  },
+  "lab-think": {
+    "thinkingLevel": "high",
+    "tools": ["read"],
+    "instructions": "Lab preset text A. Keep answers short and plain, and answer in the language of the question."
+  },
+  "lab-tools": {
+    "thinkingLevel": "low",
+    "tools": ["read", "grep", "find", "ls"],
+    "instructions": "Lab preset text A. Keep answers short and plain, and answer in the language of the question."
+  },
+  "lab-instr": {
+    "thinkingLevel": "low",
+    "tools": ["read"],
+    "instructions": "Lab preset text B. FOCUS MODE: answer in one short sentence, with no list and no preamble. Do not restate the question and do not add caveats unless the user asks for them. If something is unclear, say in one sentence what is unclear. Always answer in the language of the question."
+  },
+  "lab-all": {
+    "thinkingLevel": "high",
+    "tools": ["read", "grep", "find", "ls"],
+    "instructions": "Lab preset text B. FOCUS MODE: answer in one short sentence, with no list and no preamble. Do not restate the question and do not add caveats unless the user asks for them. If something is unclear, say in one sentence what is unclear. Always answer in the language of the question."
+  }
+}

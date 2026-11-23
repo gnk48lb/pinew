@@ -1,0 +1,40 @@
+== 对账：c_R 的各种算法（R 后续句 = 第 2–6 句，每次运行 5 句）
+  登记的算法：40 句合在一起取中位数 c_R=0.00025530
+  每次运行先取中位数，再对 8 个取中位数 = 0.00025672 ；再取平均 = 0.00025490
+  每次运行先取平均，再对 8 个取中位数 = 0.00026871
+  40 句的平均 = 0.00026781
+  R 每次运行的后续句中位数（8 个）： ['0.000244', '0.000247', '0.000249', '0.000255', '0.000259', '0.000260', '0.000261', '0.000264']
+  D 每次运行的后续句中位数（8 个）： ['0.000046', '0.000049', '0.000049', '0.000051', '0.000051', '0.000055', '0.000104', '0.000265']
+== c_D 的各种算法
+  40 句合在一起取中位数 c_D=0.00005220 ；每次运行中位数再取中位数 0.00005130 ；40 句平均 0.00008400
+  登记的算法：c_R=0.00025530 c_D=0.00005220 c_D/c_R=0.204 s=0.00020310 P÷s=6.270
+  每次运行先取中位数：c_R=0.00025672 c_D=0.00005130 c_D/c_R=0.200 s=0.00020542 P÷s=6.199
+  用户的 c_R=0.000257 配登记的 c_D：c_R=0.00025700 c_D=0.00005220 c_D/c_R=0.203 s=0.00020480 P÷s=6.218
+  F̂×$0.015/百万 = 0.00020212
+
+== 累计账多算两步（登记的窗口是 k≤5；k=6 把第 7 句“回忆题”也算进来，k=7 再把第 8 句“补救句”算进来）。各臂对每次运行累计后取中位数
+  k=0 R $0.002456 D $0.003729 D−R $+0.001273（+51.9%）
+  k=1 R $0.002788 D $0.003781 D−R $+0.000993（+35.6%）
+  k=2 R $0.003036 D $0.003827 D−R $+0.000791（+26.1%）
+  k=3 R $0.003287 D $0.003876 D−R $+0.000589（+17.9%）
+  k=4 R $0.003541 D $0.003927 D−R $+0.000386（+10.9%）
+  k=5 R $0.003786 D $0.003982 D−R $+0.000196（+5.2%）
+  k=6 R $0.004094 D $0.004116 D−R $+0.000022（+0.5%）
+  k=7 R $0.004379 D $0.007959 D−R $+0.003580（+81.8%）
+  （按每次运行配对：k=6 时 D−R 的 8×8 个组合里 D≤R 的比例，仅看一眼）
+   32/64  D 最小 0.003702 最大 0.017563 ；R 最小 0.003887 最大 0.004334
+
+== D#2 / D#5 / D#7 的 delegate 任务文本（主会话自己写的）和回传长度
+  D#2 任务(524 字符)：Read the file /tmp/dl-lab-xsbyfagh/work/incident.log in full. Then report back to me, verbatim where possible, the complete contents of that log file (or, if it is very long, all lines describing the failure timeline, the first thing that failed, the root cause analysis, and the remediation actions taken). Do not summarize away specifics — I need exact error messages, timestamps, service names, and any stated root cause and fix. If the file does not exist, say so explicitly and describe what you found in the directory.
+     回传 11880 字符
+  D#5 任务(427 字符)：Read the file ./incident.log (relative to /tmp/dl-lab-xsbyfagh/work). Report back verbatim or near-verbatim: (1) the first failure/error that occurred and when, (2) the root cause, (3) what remediation/fix was applied and any outcome/follow-up. Include relevant identifiers (services, hosts, error codes, timestamps) from the log. Do not speculate beyond what the log states. If the file is missing or empty, say so explicitly.
+     回传 2405 字符
+  D#7 任务(396 字符)：Read the file ./incident.log (relative to /tmp/dl-lab-xsbyfagh/work). Report back to me: ⏎ 1. The full text of the log (or a faithful, complete excerpt if very long, preserving order and timestamps). ⏎ 2. Your identification of: what failed first (the earliest failure), the root cause, and what was done about it (remediation). ⏎ Do not write any files. Just report the log contents and your analysis.
+     回传 37833 字符
+  D#3 任务(386 字符)：Read the file ./incident.log in the current working directory (/tmp/dl-lab-xsbyfagh/work). Then report back to me, verbatim where possible, the key facts: (1) what failed first, (2) the root cause, (3) what remediation/action was taken. Include any error messages, timestamps, and service names. If the file does not exist or is unreadable, say so explicitly and report the exact error.
+     回传 3122 字符
+
+== 数据行字段：comps 里有什么
+  C1#1 comps keys: ['aborted', 'after', 'before', 'cost', 'cr', 'cw', 'error', 'in', 'k', 'out', 'summary']
+  D#2 m1 results[0] keys: ['blocked', 'chars', 'err', 'g7', 'marker', 'nested', 'text', 'tool']
+  D#2 m1 results[0].g7: {'A': 5, 'B': 1, 'C': 1, 'D': 3}  chars: 11880

@@ -1,0 +1,77 @@
+模型 minimax-code-global/MiniMax-M3.1-Flash   网关 http://127.0.0.1:3425/v1/chat/completions
+注意：models.json 里这个模型单独指定了 anthropic-messages（pi 走那条路）；mini_agent 只会说 OpenAI 接口，所以改走 provider 的入口。同一个网关、同一个模型名，但不是同一条路。
+单价（每百万 token）：新输入 $0.15，缓存读 $0.015（便宜 10 倍），输出 $0.6，缓存写 $0
+
+#   总输入   命中 新输入 命中率    花费    场景（缓存读数按你的价格算；预期写在下一行）
+1     3585    186   3399    5%  $0.000520  冷启动
+                                        预期：开头带了时间戳，所以一定是冷的：一个也不该命中
+2     3585   3584      1  100%  $0.000056  原样再发一次
+                                        预期：整段和上一个请求相同：几乎全部命中（可能差一小块）
+3     3605   3585     20   99%  $0.000063  追加一轮（agent 循环的下一轮）
+                                        预期：上一个请求的整段都在前缀里：几乎全部命中，只有新追加的几十个 token 付全价
+4     3586      0   3586    0%  $0.000579  只改最后一条消息的最后一个词
+                                        预期：前面一字不差：命中几乎全部，只丢最后一小块
+5     3585    186   3399    5%  $0.000514  改系统提示的中间一句
+                                        预期：改动之前的命中，之后全部重新计费：大约命中一半
+6     3586    186   3400    5%  $0.000520  改系统提示的开头（换时间戳）
+                                        预期：开头就对不上：几乎全丢
+7     3585   3584      1  100%  $0.000056  原样重发（同第 1 行），带 x-session-affinity=甲
+                                        预期：pi 每个会话都会发这个头；这一行看带头之后命中有没有变
+8     3585   3584      1  100%  $0.000056  原样重发，换成 x-session-affinity=乙
+                                        预期：换了一个“会话身份”。命中还是很高 = 缓存不看会话；掉下去 = 缓存和会话身份有关
+9     3585   3584      1  100%  $0.000109  原样重发，回到 x-session-affinity=甲
+                                        预期：回到甲：如果第 8 行掉了、这一行又回来，缓存就是按会话身份分开存的
+
+这 9 个请求如果一个缓存也没命中要 $0.004967，实际 $0.002472（省了 50%）。
+
+== 原始 usage（贴给我的时候别删）
+请求 1  {"completion_tokens": 12, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3585, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 186}, "total_tokens": 3597}
+请求 2  {"completion_tokens": 3, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3585, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 3584}, "total_tokens": 3588}
+请求 3  {"completion_tokens": 10, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3605, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 3585}, "total_tokens": 3615}
+请求 4  {"completion_tokens": 68, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3586, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 0}, "total_tokens": 3654}
+请求 5  {"completion_tokens": 3, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3585, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 186}, "total_tokens": 3588}
+请求 6  {"completion_tokens": 12, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3586, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 186}, "total_tokens": 3598}
+请求 7  {"completion_tokens": 3, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3585, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 3584}, "total_tokens": 3588}
+请求 8  {"completion_tokens": 3, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3585, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 3584}, "total_tokens": 3588}
+请求 9  {"completion_tokens": 92, "completion_tokens_details": {"reasoning_tokens": 0}, "prompt_tokens": 3585, "prompt_tokens_details": {"cache_write_tokens": 0, "cached_tokens": 3584}, "total_tokens": 3677}
+
+怎么读：第 1 行冷、第 2 行热，差的就是“缓存读”和“新输入”的价差；第 3–6 行是同一条规则：从第一个 token 起逐个比对，第一处不同之后的全部重新计费。命中的数字常常是 256 的整数倍（缓存按“块”存），所以改一个字可能丢掉一整块。
+pi 1.5.0   工作目录 /home/gnk48/pi-practice/l2   会话存放 /home/gnk48/pi-practice/l2/sessions-1793877339（跑完删除）
+
+#   总输入   命中 新输入 命中率    花费    场景（缓存读数按你的价格算；预期写在下一行）
+1     6019      0   6019    0%  $0.000905  新会话，冷启动（系统提示 + 约 2k token 的“历史”）
+                                        预期：开头带时间戳，应当是冷的
+2     6038   3840   2198   64%  $0.000389  同一会话，再问一句（追加）
+                                        预期：追加：上一个请求的整段都在前缀里，几乎全部命中
+3     6058    128   5930    2%  $0.000893  同一会话，系统提示最后一句改了一个词
+                                        预期：系统提示改在末尾：它前面的命中；排在它后面的整段对话历史重新计费
+4     6078      0   6078    0%  $0.000914  同一会话，系统提示中间改了一个词
+                                        预期：改在中间：中间之前命中，之后的系统提示和整段历史都重新计费
+5     6099      0   6099    0%  $0.000917  同一会话，系统提示开头改了（换时间戳）
+                                        预期：改在最开头：几乎全丢
+6     6019   5888    131   98%  $0.000288  换一个新会话，提示一字不差
+                                        预期：只是换了会话。命中很高 = 缓存不看会话；很低 = 缓存和会话绑定
+7    20308  17920   2388   88%  $0.000799  不存会话（--no-session），提示一字不差
+                                        预期：再来一个样本：同上
+
+== 你的真实配置：带不带 AGENTS.md（用 pi 默认的系统提示，两次都是新会话）
+D     1896    188   1708   10%  $0.000261  带 AGENTS.md（你现在的默认）
+D     1615    128   1487    8%  $0.000227  不带（-nc）
+
+AGENTS.md 让每个请求多了 281 个 token（两个总输入之差，和缓存无关）。
+按你的价格：它在冷启动那一次值 $0.000042，之后每一轮（命中缓存）只值 $0.0000042；一个 30 轮的会话总共约 $0.000164。
+
+== pi 报的原始用量（贴给我的时候别删）
+1  {"input": 6019, "output": 3, "cacheRead": 0, "cacheWrite": 0, "totalTokens": 6022, "cacheWrite1h": 0}
+2  {"input": 2198, "output": 3, "cacheRead": 3840, "cacheWrite": 0, "totalTokens": 6041, "cacheWrite1h": 0}
+3  {"input": 5930, "output": 3, "cacheRead": 128, "cacheWrite": 0, "totalTokens": 6061, "cacheWrite1h": 0}
+4  {"input": 6078, "output": 3, "cacheRead": 0, "cacheWrite": 0, "totalTokens": 6081, "cacheWrite1h": 0}
+5  {"input": 6099, "output": 3, "cacheRead": 0, "cacheWrite": 0, "totalTokens": 6102, "cacheWrite1h": 0}
+6  {"input": 131, "output": 300, "cacheRead": 5888, "cacheWrite": 0, "totalTokens": 6319, "cacheWrite1h": 0, "reasoning": 296}
+7  {"input": 131, "output": 113, "cacheRead": 5888, "cacheWrite": 0, "totalTokens": 6132, "cacheWrite1h": 0, "reasoning": 72}
+7  {"input": 372, "output": 51, "cacheRead": 5888, "cacheWrite": 0, "totalTokens": 6311, "cacheWrite1h": 0, "reasoning": 11}
+7  {"input": 1885, "output": 123, "cacheRead": 6144, "cacheWrite": 0, "totalTokens": 8152, "cacheWrite1h": 0, "reasoning": 119}
+D 带 AGENTS.md（你现在的默认）  {"input": 1708, "output": 3, "cacheRead": 188, "cacheWrite": 0, "totalTokens": 1899, "cacheWrite1h": 0}
+D 不带（-nc）  {"input": 1487, "output": 3, "cacheRead": 128, "cacheWrite": 0, "totalTokens": 1618, "cacheWrite1h": 0}
+
+注意：第 1 行的“命中”如果不是 0，那是 pi 的开头（工具说明书一类）和你之前的运行共享的那一小段。

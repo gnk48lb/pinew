@@ -1,0 +1,14 @@
+{"by_tools": {
+  "tool_search": {"steps": [
+     {"tool": "tool_search", "arguments": {"query": "search notes get note"}},
+     {"tool": "mcp__notes__search_notes", "arguments": {"text": "unpaid"}},
+     {"tool": "mcp__notes__get_note", "arguments": {"id": 3}}],
+   "final": "The unpaid invoice is from Brightwell and it is due on the 30th."},
+  "codemode": {"steps": [
+     {"tool": "codemode", "arguments": {"code": "const hits = await tools.mcp__notes__search_notes({text: 'unpaid'}); const note = await tools.mcp__notes__get_note({id: 3}); return JSON.stringify([hits.content[0].text, note.content[0].text]);"}}],
+   "final": "The unpaid invoice is from Brightwell and the due date is the 30th."},
+  "mcp__notes__get_note": {"steps": [
+     {"tool": "mcp__notes__search_notes", "arguments": {"text": "unpaid"}},
+     {"tool": "mcp__notes__get_note", "arguments": {"id": 3}}],
+   "final": "It is from Brightwell and the due date is the 30th."}},
+ "default": {"steps": [], "final": "I cannot find any unpaid invoice in your notes."}}

@@ -1,0 +1,9 @@
+# No end-of-line conversion for anything whose bytes matter.
+# The measured v1 baseline is verified by sha256 (docs/baseline/v1-SHA256SUMS.txt); a user's core.autocrlf must not change it.
+extensions/*.ts      -text
+prompts/*.md         -text
+skills/**/*.md       -text
+config/*             -text
+# arena fixtures include deliberate CRLF/LF mixes, Latin-1 and sealed (scrambled) data
+bench/arena/tasks/** -text
+*.dat                binary

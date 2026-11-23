@@ -1,0 +1,73 @@
+模型 minimax-code-global/MiniMax-M3.1-Flash   网关 http://127.0.0.1:3425/v1/chat/completions
+轮  新输入  缓存读    输出  这一轮做了什么
+1      608       0      48  write({"path":"hello.py","content":"print(\"hello\")\n"})
+2      158     512      30  bash({"command":"python3 hello.py"})
+3      210     512      30  给出最终回答
+
+已创建 `hello.py`（内容 `print("hello")`）并运行，输出为 `hello`，退出码 0。
+
+合计：3 次请求，新输入 976，缓存读 1024，输出 108；缓存命中 51%
+完整对话已写入 run1.json
+条  角色        字符  内容
+1   system        125  You are a coding agent. Use the tools to do the user's task, th…
+2   user           68  在当前目录写 hello.py，内容是打印 hello；然后运行它确认输出
+3   assistant     283  [调用 write {"path":"hello.py","content":"print(\"hello\")\n"}]  （另有 32 字符的思考内容）
+4   tool          111  wrote 15 characters to hello.py
+5   assistant     196  [调用 bash {"command":"python3 hello.py"}]
+6   tool          102  hello [exit code 0]
+7   assistant      95  已创建 `hello.py`（内容 `print("hello")`）并运行，输出为 `hello`，退出码 0。
+
+共 7 条消息，约 980 字符；每次请求另外还带着 818 字符的工具说明书。
+第 N 次请求发出的 = 前 N 轮累积的全部消息：这就是“每次都带着全部历史”。
+== pi 每次请求开头那一大段固定内容（系统提示 + 工具说明书），按部分分：
+      169 字符  preamble
+      339 字符  tools
+      839 字符  rules
+     1409 字符  docs
+     1307 字符  project_context
+       39 字符  cwd
+     3084 字符  工具说明书(4个)
+   ------
+     7186 字符  合计（粗估 1796 token；准确的数看下表第 1 轮：新输入 + 缓存读）
+
+== 每一轮（= 每次模型请求）
+轮  新输入  缓存读    输出  思考  结束原因    这一轮做了什么
+1     1823     188      61    10  toolUse     write {"content": "print(\"hello\")\n", "path": "/home/… → ok，模型看到 57 字符：Successfully wrote to /…
+2       94    2010      43     0  toolUse     bash {"command": "cd /home/gnk48/pi-practice/l1 && pyt… → 退出码 0，模型看到 6 字符：hello
+3       61    2103      44     0  stop        说：完成。 - 新增文件：`/home/gnk48/pi-practice/l1/hello.py`，内容为 `print…
+
+合计：3 次请求，新输入 1978，缓存读 4301，输出 148；缓存命中 68%；花费 $0.00045
+模型 minimax-code-global/MiniMax-M3.1-Flash   网关 http://127.0.0.1:3425/v1/chat/completions
+轮  新输入  缓存读    输出  这一轮做了什么
+1      430     189      85  bash({"command":"seq 1 10000"})
+2    29053     619       9  给出最终回答
+
+最后一行是 `10000`。
+
+合计：2 次请求，新输入 29483，缓存读 808，输出 94；缓存命中 3%
+模型 minimax-code-global/MiniMax-M3.1-Flash   网关 http://127.0.0.1:3425/v1/chat/completions
+轮  新输入  缓存读    输出  这一轮做了什么
+1        1     618     271  bash({"command":"seq 1 10000"})
+2       19    5122     274  bash({"command":"seq 1 10000 | wc -l; seq 1 10000 | tai)
+3       73    5141      27  给出最终回答
+
+最后一行是 **10000**。输出共 10000 行，从 1 到 10000 依次递增。
+
+合计：3 次请求，新输入 93，缓存读 10881，输出 572；缓存命中 99%
+== pi 每次请求开头那一大段固定内容（系统提示 + 工具说明书），按部分分：
+      169 字符  preamble
+      339 字符  tools
+      839 字符  rules
+     1409 字符  docs
+     1307 字符  project_context
+       39 字符  cwd
+     3084 字符  工具说明书(4个)
+   ------
+     7186 字符  合计（粗估 1796 token；准确的数看下表第 1 轮：新输入 + 缓存读）
+
+== 每一轮（= 每次模型请求）
+轮  新输入  缓存读    输出  思考  结束原因    这一轮做了什么
+1     1846     176      63    29  toolUse     bash {"command": "seq 1 10000"} → 退出码 0，pi 截断：只给模型 2000/10000 行，模型看到 10085 字符：8001 8002 8003 8004 800…
+2     6113    2022      10     0  stop        说：最后一行是 **10000**。
+
+合计：2 次请求，新输入 7959，缓存读 2198，输出 73；缓存命中 22%；花费 $0.00127

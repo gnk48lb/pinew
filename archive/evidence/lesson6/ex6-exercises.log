@@ -1,0 +1,88 @@
+# 第 6 课 三个选做练习的输出（原文转录，2026-11-17）
+
+以下两段是在 WSL Ubuntu 里跑出来的，练习 ① 不花钱，② 和 ③ 的花费见末尾。
+第 6 课的正式实验（95 次运行）的完整日志在同目录的 ex6.log 里。
+
+================================================================================
+练习 ① 手动和迷你服务器说话（不花钱）
+================================================================================
+
+$ printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_note","arguments":{"id":3}}}' > req.jsonl
+$ MINI_MCP_TOOLS=12 node ~/pi/lesson6/mcp/mini_mcp.js < req.jsonl | cut -c1-300
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{"listChanged":false}},"serverInfo":{"name":"mini-notes","version":"1.0.0"},"instructions":"A small notebook server: 12 tools for reading and changing notes."}}
+{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"list_notes","description":"List the notes in the notebook, newest first, optionally only those carrying a given tag.","inputSchema":{"type":"object","properties":{"tag":{"type":"string","description":"Only list notes with this tag."},"limit":{"type
+{"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"id: 3\ntitle: Invoice 4417\ntags: finance\nbody: Invoice 4417 from Brightwell is unpaid; the due date is the 30th. Ask accounting before paying."}],"isError":false}}
+
+$ for n in 3 12 30; do echo -n "$n 个工具："; MINI_MCP_TOOLS=$n node ~/pi/lesson6/mcp/mini_mcp.js < req.jsonl | awk '{printf "第%d行 %d 字符；", NR, length($0)} END {print ""}'; done
+3 个工具：第1行 248 字符；第2行 1122 字符；第3行 233 字符；
+12 个工具：第1行 249 字符；第2行 4501 字符；第3行 233 字符；
+30 个工具：第1行 249 字符；第2行 11420 字符；第3行 233 字符；
+
+（我这一条没猜。边际成本 = (11420 − 1122) ÷ 27 = 381 字符/工具。）
+
+================================================================================
+练习 ② 量 MCP 配置（--mine-mcp，量的是包里的迷你服务器，20 个工具）
+================================================================================
+
+$ python3 ~/pi/lesson6/preset_mcp_lab.py --mine-mcp
+pi 1.5.0   模型 magpie / minimax-code/MiniMax-M3.1-Flash   设计指纹 1837b8842f8c
+node v24.15.0；迷你服务器 mini_mcp.js sha256 903715bd…（自检通过：3 / 12 / 30 个工具，两次 tools/call 对）；v1 preset.ts sha256 7942b7f9…；参考文本 16056 字符（sha256 692f1d8597c1…）
+私有目录 /tmp/pm-lab-21mbtd_d（你的 models.json、auth.json 的副本、实验用的 mcp.json 和 presets.json；跑完删除）。
+单价（每百万 token）：新输入 $0.15，缓存读 $0.015，输出 $0.6
+量 MCP 配置：包里的迷你服务器（20 个工具）；启用的服务器：notes。E0（不配服务器）、C（codemode）、D（deferred）、X（direct）、H（hidden）各 2 次，每次问 1 句。
+[  1/10] H    #1  总输入 T=970（命中 512）   1.9 秒  $0.000078
+[  2/10] C    #1  总输入 T=1527（命中 128）   2.0 秒  $0.000214
+[  3/10] D    #1  总输入 T=1196（命中 128）   1.3 秒  $0.000164
+[  4/10] X    #1  总输入 T=2931（命中 768）   2.1 秒  $0.000338
+[  5/10] E0   #1  总输入 T=970（命中 768）   2.1 秒  $0.000044
+[  6/10] D    #2  总输入 T=1196（命中 1152）   2.4 秒  $0.000035
+[  7/10] C    #2  总输入 T=1527（命中 1408）   1.6 秒  $0.000041
+[  8/10] X    #2  总输入 T=2931（命中 2816）   1.8 秒  $0.000061
+[  9/10] E0   #2  总输入 T=970（命中 768）   2.2 秒  $0.000044
+[ 10/10] H    #2  总输入 T=970（命中 768）   1.9 秒  $0.000044
+
+== 你的 MCP 配置：四种露出方式各让每个请求多几个 token（总输入 T，每个臂 2 次；D = 该臂的底 − E0 的底）
+臂    有效/计划      各次的 T        D
+E0   2/2        970/970      （对照）
+C    2/2        1527/1527    +557
+D    2/2        1196/1196    +226
+X    2/2        2931/2931    +1961
+H    2/2        970/970      +0
+  direct 露出了 20 个工具，平均每个工具 98.0 token
+  盈亏点 n* = D(codemode) ÷ 每个工具的 token = 5.7 个工具：你的服务器合起来的工具比这少，direct 每个请求更省；比这多，codemode 更省（只算每个请求的固定税）
+  C：每个请求多 +557 token → 命中缓存时多花 $0.0000084，没命中时多花 $0.0000835
+  D：每个请求多 +226 token → 命中缓存时多花 $0.0000034，没命中时多花 $0.0000339
+  X：每个请求多 +1961 token → 命中缓存时多花 $0.0000294，没命中时多花 $0.0002941
+本次花费 $0.0011
+
+================================================================================
+练习 ③ 看中途换预设时模型看到的工具名单（--demo-preset）
+================================================================================
+
+$ python3 ~/pi/lesson6/preset_mcp_lab.py --demo-preset
+pi 1.5.0   模型 magpie / minimax-code/MiniMax-M3.1-Flash   设计指纹 1837b8842f8c
+node v24.15.0；迷你服务器 mini_mcp.js sha256 903715bd…（自检通过：3 / 12 / 30 个工具，两次 tools/call 对）；v1 preset.ts sha256 7942b7f9…；参考文本 16056 字符（sha256 692f1d8597c1…）
+私有目录 /tmp/pm-lab-fghzrbks（你的 models.json、auth.json 的副本、实验用的 mcp.json 和 presets.json；跑完删除）。
+单价（每百万 token）：新输入 $0.15，缓存读 $0.015，输出 $0.6
+演示：一个 pi 进程，连问 3 句，中间用 /preset 切换两次（demo-plain 的 tools 只有 read；demo-keep 的 tools 是 read 加三个 MCP 工具的完整名字）。
+启动时 --tools read,mcp__notes__*，所以第 1 句里模型能看到 read 加 3 个 MCP 工具。
+
+第 1 句（启动状态）：模型看到的工具 = mcp:get_note, mcp:list_notes, mcp:search_notes, read
+    这句的第 1 个请求：总输入 T=1247，命中 128，没命中 1119；请求数 1
+第 2 句（/preset demo-plain 之后）：模型看到的工具 = read
+    这一步关掉：mcp:get_note, mcp:list_notes, mcp:search_notes
+    这句的第 1 个请求：总输入 T=995，命中 0，没命中 995；请求数 1
+第 3 句（/preset demo-keep 之后）：模型看到的工具 = mcp:get_note, mcp:list_notes, mcp:search_notes, read
+    这一步新增：mcp:get_note, mcp:list_notes, mcp:search_notes
+    这句的第 1 个请求：总输入 T=1302，命中 128，没命中 1174；请求数 1
+
+读法：第 2 句里 MCP 的工具都不见了——预设里的 tools 是完整的白名单，没写的工具（包括 MCP 的工具、codemode、tool_search）一起被关掉；
+      第 3 句里它们回来了——把完整的 mcp__ 名字写进预设的 tools，它们就留下来。
+本次花费 $0.0005
+
+================================================================================
+三个练习合计花费 $0.0016

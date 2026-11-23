@@ -1,0 +1,75 @@
+== D 臂逐次：回传字符 | 回答里 g7 计数(全文，只在回答含标记行时才有) | 前 1,500 字符里有没有 ABCD | 主会话 m1 总结里提到 ABCD | 回忆题 ABCD
+  D#1 回传   3806 | marker=True g7={'A': 2, 'B': 1, 'C': 0, 'D': 1} | 前1500: AB·· | 总结提到: A··D | 回忆: √√?√
+  D#2 回传  11880 | marker=True g7={'A': 5, 'B': 1, 'C': 1, 'D': 3} | 前1500: AB·· | 总结提到: A··D | 回忆: √√√√
+  D#3 回传   3122 | marker=True g7={'A': 2, 'B': 2, 'C': 0, 'D': 1} | 前1500: AB·· | 总结提到: A··D | 回忆: √√?√
+  D#4 回传   2768 | marker=True g7={'A': 3, 'B': 1, 'C': 0, 'D': 1} | 前1500: AB·· | 总结提到: A··D | 回忆: √√?√
+  D#5 回传   2405 | marker=True g7={'A': 2, 'B': 1, 'C': 0, 'D': 1} | 前1500: AB·· | 总结提到: A··D | 回忆: √√?√
+  D#6 回传   4416 | marker=True g7={'A': 2, 'B': 1, 'C': 0, 'D': 1} | 前1500: AB·· | 总结提到: A··D | 回忆: √√?√
+  D#7 回传  37833 | marker=True g7={'A': 5, 'B': 1, 'C': 1, 'D': 2} | 前1500: A··· | 总结提到: A··D | 回忆: √√√√
+  D#8 回传   3673 | marker=True g7={'A': 4, 'B': 0, 'C': 0, 'D': 2} | 前1500: A··· | 总结提到: A··D | 回忆: √??√
+
+== 事后表（登记过要加的）：D 臂里主会话 m1 总结没提到的 16 格（针 B、C 各 8 次），按“值在子代理回答里确知出现过 / 没看到”分，各答对几个
+  确知出现过（前 1,500 字符里有，或回答全文的 g7 计数 >0）：9 格，答对 9   明细 [(1, 'B', '对'), (2, 'B', '对'), (2, 'C', '对'), (3, 'B', '对'), (4, 'B', '对'), (5, 'B', '对'), (6, 'B', '对'), (7, 'B', '对'), (7, 'C', '对')]
+  没看到（前 1,500 字符里没有，也没有 g7）：7 格，答对 0   明细 [(1, 'C', '不知道'), (3, 'C', '不知道'), (4, 'C', '不知道'), (5, 'C', '不知道'), (6, 'C', '不知道'), (8, 'B', '不知道'), (8, 'C', '不知道')]
+  总计 16 格，答对 9
+  针 B：确知出现 7 格（答对 7）；没看到 1 格（答对 0）
+  针 C：确知出现 2 格（答对 2）；没看到 6 格（答对 0）
+
+== C1 压缩摘要里留下了什么（逐次：摘要字符数；摘要里有没有 A、B、C、D 的值）
+  C1#1 摘要 2401 字符 | A··D | 压缩 16069→1859 token
+  C1#2 摘要 1919 字符 | A··D | 压缩 19279→1743 token
+  C1#3 摘要 2252 字符 | A··D | 压缩 19709→1824 token
+  C1#4 摘要 2357 字符 | A··D | 压缩 15843→1845 token
+  C1#5 摘要 1723 字符 | A··D | 压缩 16082→1687 token
+  C1#6 摘要 2191 字符 | A··D | 压缩 15948→1813 token
+  C1#7 摘要 1996 字符 | A··D | 压缩 16031→1758 token
+  C1#8 摘要 1818 字符 | A··D | 压缩 15951→1720 token
+  —— C1#4 摘要全文（前 1,800 字符）：
+## Goal
+- Read `./incident.log` and produce an incident summary of at most 6 lines covering the first failure, root cause, and remediation.
+- Note that the latest instruction was unrelated to the log and required only the word `OK`.
+
+## Constraints & Preferences
+- Incident summary must be at most 6 lines.
+- For the unrelated latest request, reply with only `OK`.
+- Do not act on the unrelated word-paragraph note.
+
+## Progress
+### Done
+- [x] Read `/tmp/dl-lab-xsbyfagh/work/incident.log`.
+- [x] Identified the first failure at `2026-03-14T03:00:48.002Z`: `deploy-ctl rollout aborted: ledger-sync build 1057 failed the health gate on 3 of 5 pods`.
+- [x] Determined root cause: build 1057/commit `a8ea103` destabilized `ledger-sync`, causing stalled syncs, `payments-gw` upstream timeouts with `circuit=OPEN`, and slow `billing-api` queries.
+- [x] Documented customer impact, including billing-api 502s, edge-gw 504s, and tenant throttling.
+- [x] Documented remediation: rollback at `03:20:04` to stable commit `4a62f66` / build `4520`; ledger-sync lag returned to roughly 15–120 ms.
+- [x] Replied to the unrelated instruction with exactly `OK`.
+
+### In Progress
+- [ ] None.
+
+### Blocked
+- None.
+
+## Key Decisions
+- **Treat the canary health-gate failure as the first failure**: It preceded later promotion, impact, and rollback.
+- **Identify stalled ledger-sync plus dependency/query failures as the root cause**: These symptoms directly followed deployment of build 1057 and ceased after rollback.
+- **Make no changes for the unrelated note**: The user explicitly said no action was needed.
+
+## Next Steps
+1. No further action is required unless the user provides a new task.
+
+## Critical Context
+- Incident export: `run=430af8c9`, host `ops-7`, window `03:00-04:10`.
+- Deployed artifact initially 
+
+== 钱花在哪：每次运行的平均数拆分（均值；登记的账用中位数，这里只为看“哪一块贡献了差额”）
+  m1 任务      R $0.002482  D $0.005806  D−R $+0.003324
+  m2–6 五句 OK R $0.001339  D $0.000420  D−R $-0.000919
+  m7 回忆题     R $0.000307  D $0.000143  D−R $-0.000163
+  m8 补救句     R $0.000284  D $0.002692  D−R $+0.002407
+  合计         R $0.004413  D $0.009061  D−R $+0.004649（D 是 R 的 2.05 倍；平均数）
+  去掉 D#7 后 D 平均 $0.007395（R 的 1.68 倍）
+  D#7 的 m2–6 每句： ['0.000260', '0.000262', '0.000265', '0.000268', '0.000271']  D#2： ['0.000099', '0.000102', '0.000104', '0.000107', '0.000110']
+
+== 补救句（m8）的问题文本与 D 的回答：D#7、D#2 的回忆题答对情况与是否再调 delegate
+  D#2 回忆 {'A': '对', 'B': '对', 'C': '对', 'D': '对'}；补救句调用 []；补救后 {'A': '对', 'B': '对', 'C': '对', 'D': '对'}
+  D#7 回忆 {'A': '对', 'B': '对', 'C': '对', 'D': '对'}；补救句调用 ['delegate']；补救后 {'A': '对', 'B': '对', 'C': '对', 'D': '对'}

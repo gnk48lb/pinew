@@ -7,8 +7,9 @@
 #
 # What it checks: the package installs from a local path; /preset, 5 prompt templates and 2 skills load (and nothing from
 # labs/ archive/ experimental/ bench/); the safety gate refuses `rm -rf old` in print mode and the model is told why;
-# `--preset explore` does nothing without presets.json and works with it; copied-v1 + package (double install) reproduces
-# the `--preset` conflict and `pi -ne` still starts; baseline files are byte-identical to v1.0.0.
+# `--preset explore` does nothing without presets.json and works with it; `--preset deep --thinking low` still sends high
+# (the preset beats the flag; a documented pitfall, FACTS G7 — flip that check when v1.2 fixes it); copied-v1 + package
+# (double install) reproduces the `--preset` conflict and `pi -ne` still starts; baseline files are byte-identical to v1.0.0.
 # Gotchas it encodes (all learned the hard way): the isolated agent dir needs settings.json with defaultProvider/defaultModel,
 # otherwise pi picks a built-in provider and the request never reaches the mock (error: `Unexpected token 'r', "request bl"...`);
 # print/json mode needs `< /dev/null`; the gate cannot ask anyone in print mode, so it refuses.
@@ -60,6 +61,20 @@ mock "$W/empty.json"; ( cd "$W/cwd" && "$PI" -p "hi" --preset explore $JSON < /d
 cp "$REPO/config/presets.json" "$W/agent/presets.json"
 mock "$W/empty.json"; ( cd "$W/cwd" && "$PI" -p "hi" --preset explore $JSON < /dev/null > /dev/null 2>&1 )
 [ "$(req)" = "['find', 'grep', 'ls', 'read'] True" ] && pass "--preset explore: 4 read-only tools + READ-ONLY instruction" || fail "explore not applied: $(req)"
+
+# 4b. --preset vs an explicit --thinking (FACTS G7). Known pitfall: the preset is applied in session_start, after pi has applied
+#     --thinking, so the preset wins although preset.ts's header says CLI flags win. Control first, then the pitfall.
+budget() { python3 - "$W/run/dump-$PORT.jsonl" <<'PY'
+import json, sys
+rows = [json.loads(l) for l in open(sys.argv[1]) if l.strip()]
+b = rows[-1].get("body", rows[-1])
+print((b.get("thinking") or {}).get("budget_tokens"))
+PY
+}
+mock "$W/empty.json"; ( cd "$W/cwd" && "$PI" -p "hi" --mode json --no-session --thinking low < /dev/null > /dev/null 2>&1 )
+[ "$(budget)" = 2048 ] && pass "no preset: --thinking low sends budget_tokens 2048" || fail "control failed: budget=$(budget)"
+mock "$W/empty.json"; ( cd "$W/cwd" && "$PI" -p "hi" --mode json --no-session --preset deep --thinking low < /dev/null > /dev/null 2>&1 )
+[ "$(budget)" = 16384 ] && pass "--preset deep --thinking low sends 16384 (high): the preset beats the flag (known pitfall, FACTS G7)" || fail "preset/--thinking behaviour changed: budget=$(budget) (if v1.2 fixed it, flip this check to expect 2048)"
 
 # 5. double install
 mkdir -p "$W/agent/extensions" && cp "$REPO"/extensions/*.ts "$W/agent/extensions/"

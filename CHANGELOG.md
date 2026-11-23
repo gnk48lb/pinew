@@ -9,4 +9,6 @@ Baseline. The files in `extensions/`, `skills/`, `prompts/` and `config/` are by
 
 prefix: +0 tokens/request compared with the measured v1 (same files; measured with MiniMax-M3.1-Flash on pi 1.5.0 — see `docs/FACTS.md` section C for what each part costs).
 
-Known issue: installing this package on a machine that already has v1 copied into `~/.pi/agent/` (what `tools/legacy/install_v1.py` does) makes pi exit at startup with `Flag "--preset" conflicts`. Recover with `pi -ne`. The 1.1.0 installer is meant to remove the copies first.
+Known issues:
+- Installing this package on a machine that already has v1 copied into `~/.pi/agent/` (what `tools/legacy/install_v1.py` does) makes pi exit at startup with `Flag "--preset" conflicts`. Recover with `pi -ne`. The 1.1.0 installer is meant to remove the copies first.
+- `--preset X` overrides an explicit `--thinking` (`pi --preset deep --thinking low` sends high), although the header of `extensions/preset.ts` says CLI flags win; `--tools` is not affected. Measured with pi 1.5.0 on the mock gateway (`dev/seed-check.sh` checks it; `docs/FACTS.md` G7). Planned for 1.2.0.

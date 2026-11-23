@@ -107,6 +107,8 @@ def main():
                     m.get("id"), m.get("api", "(provider's)"), m.get("contextWindow"), m.get("maxTokens"),
                     m.get("reasoning"), json.dumps(m.get("cost")),
                     ",".join(k for k, v in (m.get("thinkingLevelMap") or {}).items() if v) or "-"))
+                if m.get("compat"):  # model values override the provider's compat field by field (FACTS F9)
+                    print("      model-level compat=%s" % json.dumps(m.get("compat")))
 
     print("\n== 4. packages and leftovers")
     if pi:

@@ -40,5 +40,5 @@ curl -fsSL https://raw.githubusercontent.com/gnk48lb/pi/922884b6b6d75f61a405b05f
 ## 要注意的事
 
 - **沙箱里补的文件不在旧仓库里**：`labs/lesson8/{score_lesson8.py, analysis/, mock/}`、`labs/lesson6/{score_lesson6.py, lab-presets.json}`、`dev/`（模拟网关、`rpc_commands.py`）、`bench/arena/` 里 v0.3 新增的 `arena_peek.py`、`arena_sandbox.py`、`r4_scan.py`、`arena_selftest_v03.py` 和各题的 `sealed.dat`（来自 `pi-round4.tgz`）。
-- **最新的手册和路线图在用户的 Claude Docs 里**（含第 8 课数据回填），旧仓库和 `archive/` 里只有 11-21 的导出。第 8 课的结论已整理进 `FACTS.md` §I。
+- **新账号读不到旧账号的 Claude Docs，一切以本仓库为准。** 旧账号的 Docs 里有手册和路线图的最新版（含第 8 课数据回填），但旧仓库和 `archive/` 里只有 11-21 中午的导出；缺的只是第 8 课手册章节的定稿和路线图里第 8 课的数据回填——结论在 `FACTS.md` §I，原始数据在 `archive/evidence/lesson8/`，实验脚本在 `labs/lesson8/`。
 - 旧仓库里的 `.gitignore` 只有一行；**不要往旧仓库推东西**。建议用户之后把旧仓库在 GitHub 上归档（Settings → Archive，一次点击；不删，pinned 提交仍然可取）——这件事问他一次，不要替他做。

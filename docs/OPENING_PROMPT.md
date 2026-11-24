@@ -1,16 +1,18 @@
 # 开场 prompt（给新 session）
 
-## 给用户：怎么用（一次性，3 步）
+## 给用户：怎么用（免费账号版，一次性，3 步）
 
-先记住一件事：**仓库挂载和推送只在“云端会话”里有；普通聊天、普通 Project 里都没有。**（设置里 Claude GitHub App 旁边那行小字 “Cloud sessions only” 说的就是这个。）官方文档写明云端会话需要 Pro / Max / Team 等计划（“Cloud sessions are available on Pro, Max, and Team plans…”）。
+背景：仓库挂载和推送只在“云端会话”（claude.ai/code）里有，官方文档写明它是 Pro / Max / Team 的功能，免费账号用不了；免费账号的普通聊天推不了 GitHub。所以用**附件模式**：新 session 从你传的附件拿代码，每段结束把整个仓库打成 tar.gz 交给你保存，下次新对话你再传回去。
 
-1. 打开 **https://claude.ai/code**（桌面版：左边的 **Code** 标签，环境选 **Cloud**）。在输入框下面的**仓库选择器**里选 **`gnk48lb/pinew`**，分支选 `main`。不用建 Project（Code 里的 Projects 是给多线程协调用的，这里一个会话够了），不用上传任何文件。
-2. 把下面「开场消息」整段粘进输入框，末尾另起一行写 **`开始`**，发送。
-3. 以后每开一个新的云端会话（上下文用完了、换设备、隔了几天），同样选 `gnk48lb/pinew`，只发一句：**`继续`**。（仓库里的 `.claude/CLAUDE.md` 会让它自己去读 HANDOFF 和 STATE。）
+1. 在新账号里新开一个**普通对话**（不用建 Project）。把 `pinew.tar.gz` 拖进去当附件（传不上就换 `pinew.zip`），再把下面「开场消息」整段粘进输入框，末尾另起一行写 **`开始`**，发送。
+2. 每个工作段结束，它会给你一个新的 `pinew-日期-提交号.tar.gz`。**下载并保存**（最新的那个就是最新状态，旧的留着当备份）。需要装到 WSL 时，它会给你一条命令，直接粘。
+3. 上下文用完了、换设备、隔了几天：新开对话，把**最新的** tar.gz 拖进去，只发一句 **`继续`**。
 
-没有云端会话可用时的备用（很麻烦，不推荐）：在普通聊天里把 `pinew.tar.gz` 传给它并说“仓库挂不上，用附件”；它推不了 GitHub，每段结束你得下载它回传的新 tar.gz 再传回去。
+如果它第一条回复说沙箱联不了网（装不了 pi），按它的提示去 Settings → Capabilities 里打开代码执行和网络出口（至少 “Package managers only”）。
 
-换账号提醒：新账号读不到旧账号的 Claude Docs（不影响，所有资料都在仓库里）；它只需要在 claude.ai/code 里连上 GitHub，并且 Claude GitHub App 装在 `gnk48lb` 上（设置里显示 Installed 即可）。
+以后如果你升级到 Pro/Max：改用 https://claude.ai/code，在仓库选择器里选 `gnk48lb/pinew`，就能直接推 GitHub，不用再传附件。
+
+换账号提醒：新账号读不到旧账号的 Claude Docs（不影响，所有资料都在仓库里）。
 
 ## 开场消息（整段粘贴，不含本行）
 
@@ -21,13 +23,14 @@
 【开始 / 继续】我发“开始”＝第一个 session：照下面“先做这些”走。我发“继续”＝读 docs/STATE.md 的“下一步”，接着做，不要重新教学、不要复述背景。
 
 【先做这些】
-1. 仓库：我在云端会话里选了 gnk48lb/pinew，它已经在你的工作目录里；没有的话用 add_repo（owner gnk48lb，repo pinew，access "push"）。挂不上或推不了，就一句话告诉我缺什么，别绕；我可以上传 pinew.tar.gz。
+1. 仓库（按顺序试，别绕）：①云端会话里仓库已经挂好就直接用；②有 add_repo 就用（owner gnk48lb，repo pinew，access "push"）；③否则进入**附件模式**（我是免费账号，没有云端会话）：用我传的 pinew.tar.gz（或 .zip，含 .git）；沙箱能访问 github.com 的话也可以 `git clone https://github.com/gnk48lb/pinew`（公开仓库）对照，两份不一样时以 docs/STATE.md 里“最后更新”更晚的为准。先用一条命令查沙箱能不能联网装包：`npm view @earendil-works/pi-coding-agent version`；不能就一句话告诉我要在设置里打开哪一项，别绕。
 2. 依次读：docs/HANDOFF.md → docs/STATE.md → git log -10。排期看 docs/ROADMAP.md；查某个数据用 grep 搜 docs/FACTS.md；archive/ 是证据，只 grep 不通读。你读不到旧账号的 Claude Docs，也不需要：一切以仓库为准。
 3. 第一次对我说话：一句话确认收到 + 我要做的那一件事。
 
 【分工】
 - 所有改动、提交、推送都由你做。我只配合三件事：在我的 WSL 里跑你给的一条命令并整段贴回输出；回答是/否或二选一；（有的话）说用着哪里别扭（你记进 docs/FRICTION.md 并优先处理）。别让我手改文件、别让我敲一串 git。
-- 推送：直接推 main（`git push origin HEAD:main`，仓库只有我一个人，不走 PR）。云端会话的 GitHub 代理不让推 tag、也不让删分支（官方文档写明），所以发版标记用标题为 `Release vX.Y.Z` 的提交，细节在 HANDOFF §5.17；别试着绕，也别建删不掉的临时分支。
+- 推送：能推就直接推 main（`git push origin HEAD:main`，仓库只有我一个人，不走 PR）。云端会话的 GitHub 代理不让推 tag、也不让删分支（官方文档写明），所以发版标记用标题为 `Release vX.Y.Z` 的提交，细节在 HANDOFF §5.17；别试着绕，也别建删不掉的临时分支。**附件模式下推不了 GitHub，别再提 push**：每个工作段结束，把整个仓库（含 .git）打成 `pinew-YYYYMMDD-<提交号>.tar.gz` 交给我（我说传不上就改 zip），并说一句“下载保存，下次新对话把最新的传给我”；要装到我的 WSL 时，给我**一条**命令（让它自己去 Windows 的 Downloads 里找最新的 pinew-*.tar.gz）。GitHub 上的 main 在附件模式下不会更新，WSL 上要跑的新脚本只能从 tar.gz 里来。
+- 额度：我是免费账号，每 5 小时大概只有十几到几十条消息的额度（Engadget 2026-06 的说法，没核实）。所以一条回复里尽量多做事：把不依赖我的活一次做完，需要我的事合并成一条消息，别用零碎的提问浪费额度。
 - 让我跑东西之前先说：大概花多少钱、多久、会不会改我机器上的东西；会改东西的先给 --dry-run。涉及真实模型的数字（token、命中、花费）只有我的真网关量得出，你的沙箱只有模拟网关。
 
 【推进规则】我是个懒人：**不要让我先把半成品当主力用一两周、攒摩擦再说，也不要把“我用满 X 周”设成任何版本的开工或发布条件。**你主动、连续地按 docs/ROADMAP.md 的顺序推进（v1.1 → v1.2 → v1.3 → v1.4 → v1.5 → v2.0 → v3 以后），一轮里能做完几版就做几版，每版各自提交（发版提交的标题写 `Release vX.Y.Z`）、更新 docs/STATE.md；我没报摩擦也不要停下来等我。我试用时如果说“这里别扭”，你记进 docs/FRICTION.md 并**插队**处理（同类第二次升为高优先级）。验收用可测的标准（自检脚本、模拟网关场景、在我的真网关上量一次、我在真机跑一条冒烟命令），不用“我用了多久”。我会全力配合：跑你要的验证命令、整段贴回输出、二选一拍板——需要就直接要，并把要我做的事合并成一条。只有两种情况你停下来等我：要我拍板的事，或要我在 WSL 里跑一条命令才能继续的验证；结束这一轮之前，先把不依赖我的活做完。

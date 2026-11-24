@@ -5,6 +5,7 @@
 - 最后更新：2026-11-24（交接；11-23 按用户反馈修订过一次）· 更新者：上一个（教学）session
 - 当前版本：**v1.0.0**（= 实测过的 v1 + pi 包外壳；基线提交 `8e9114f`，文档修订 `5a343e4`）。GitHub 上 `main` 已推；**远端没有 tag `v1.0.0`，也推不上去**——云端会话的 GitHub 代理不让推 tag（官方文档写明，HANDOFF §5.17、FACTS F11），本地 tag 留在上一个沙箱里不会跟过来。基线以 `docs/baseline/v1-SHA256SUMS.txt` 为准（`python3 tools/verify-baseline.py`），不依赖 tag。
 - 用户 WSL 上 pinew 的状态：**还没装**。他那里现在是 `install_v1.py` 复制式安装的 v1（12 个文件复制进 `~/.pi/agent/`），或者别的什么——**真实情况未知，等 `collect-state.py` 的输出**。
+- **会话环境（11-24 起）**：用户的新账号是**免费版**——云端会话（Pro/Max/Team）用不了，普通聊天里没有 `add_repo`，推不了 GitHub（FACTS F12）。所以走**附件模式**（HANDOFF §8）：仓库来自用户传的 `pinew.tar.gz`/`.zip`（或沙箱里 `git clone` 公开仓库），每个工作段结束把整个仓库打成 `pinew-YYYYMMDD-<提交号>.tar.gz` 交给用户保存，下次新对话他把最新的传回来。GitHub 上的 `main` 停在旧账号会话推的最后一个提交，之后只有拿到推送权限的会话或用户在 WSL 里才能更新它。免费版额度很紧（约每 5 小时十几到几十条消息，Engadget 转述，没核实）：一条回复里尽量多做事。
 
 > **推进规则（用户 11-23 定的，别漏）**：**没有“先用一两周、攒摩擦再做”的门槛。**他不想拿半成品当主力熬着，要你先主动把 pinew 打磨到顺手、靠谱，他再重度上手。所以：按 `ROADMAP.md` 的顺序 v1.1 → v1.2 → v1.3 → v1.4 → v1.5 → v2.0 → v3 以后**连续推进**，他没报摩擦也不停下来等；他报了摩擦就记进 `FRICTION.md` 并插队；验收看可测的标准，不看“他用了多久”；他全力配合（跑命令、贴输出、二选一）。完整规则在 `ROADMAP.md` 开头。
 
@@ -36,7 +37,7 @@
 ## 下一步（按顺序；**做完一版就开下一版，不等用户“先用几天”**）
 
 1. 读 `docs/HANDOFF.md`（§0 一屏版和推进规则、§4 铁律、§5 踩坑、§8 第一小时）和 `docs/ROADMAP.md`（开头的推进规则 + v1.1.0）。
-2. 仓库：用户在云端会话（claude.ai/code）的仓库选择器里选了 `gnk48lb/pinew`，它就在工作目录里；没有就 `add_repo(owner="gnk48lb", repo="pinew", access="push")`。确认能 `git push origin HEAD:main`（直接推 main，不走 PR）。**tag 和删分支会被 GitHub 代理拒绝**（官方文档，FACTS F11）：发版用标题为 `Release vX.Y.Z` 的提交，别试推 tag、别换花样绕、别建删不掉的临时分支（HANDOFF §5.17）。
+2. 仓库：先看有没有挂好的仓库/`add_repo`；没有就是**附件模式**（HANDOFF §8）——用附件里的 tar.gz/zip；沙箱能 `git clone https://github.com/gnk48lb/pinew` 时拿它对照，以本页“最后更新”更晚的为准。先用一条命令查沙箱能不能联网装包（`npm view @earendil-works/pi-coding-agent version`），不能就一句话告诉用户要开哪个设置。只有在能推送时才 `git push origin HEAD:main`；**tag 和删分支会被 GitHub 代理拒绝**（官方文档，FACTS F11）：发版用标题为 `Release vX.Y.Z` 的提交，别试推 tag、别换花样绕、别建删不掉的临时分支（HANDOFF §5.17）。
 3. 搭沙箱：`mkdir -p ~/rt && cd ~/rt && npm i @earendil-works/pi-coding-agent@1.5.0`；`cp dev/env.sh.example dev/env.sh`；起 mock；`python3 dev/rpc_commands.py` 应列出 `/preset`、5 个提示模板、2 个技能；`bash dev/seed-check.sh` 应 14 项全 PASS。（`dev/README.md`）
 4. **让用户做一件事**：`git clone https://github.com/gnk48lb/pinew ~/pinew && python3 ~/pinew/tools/collect-state.py`，整段贴回（只读、无网络、密钥打码；会打出 provider 级和模型级的 `compat`）。**等他贴回输出时不要空等**：沙箱里先把 `tools/pinew.py` / `tools/check.py` 的骨架和假 HOME 场景写起来。
 5. 按输出设计并写 `tools/pinew.py`（status / install --dry-run / install / update / undo；非包文件的同步约定见 ROADMAP v1.1）与 `tools/check.py`，在假 HOME 里测完所有场景；再让用户 `--dry-run` → 正式迁移 → 烟测。
@@ -45,6 +46,7 @@
 ## 等用户的
 
 - 在他的 WSL 里跑一条 `collect-state.py`（见上面第 4 步）。
+- 每个工作段结束：下载你交付的 `pinew-*.tar.gz` 并保存；开新对话时把最新的传回来（传不上 tar.gz 就换 zip）。
 - （可选，不阻塞任何事）想让 GitHub 上看得到版本标签：在 `gnk48lb/pinew` 网页 → Add file → Create new file，文件名填 `.github/workflows/auto-tag.yml`，内容粘 `tools/github/auto-tag.yml` 的全文，提交到 `main`；之后 `v1.0.0` 和每个新版本的 tag 由 GitHub 自己打（没在真 Actions 上跑过，见 HANDOFF §5.17）。不做也不影响任何事。
 
 ## 开放问题（只有用户能答；一次一个，二选一；问完就做，他没回就先做不依赖答案的部分）
@@ -62,3 +64,4 @@
 | 2026-11-22/23 | 教学 session（交接） | 搭 `pinew`：包外壳 + 基线 + 实验室脚本 + 评测台 v0.3 + 模拟网关 + 证据；写 HANDOFF / FACTS / ROADMAP / STATE / OLD-REPO-MAP；沙箱验证包加载、安全带、预设；发现并记录双装崩溃与 `--preset` 静默无效 | v1.0.0；v1.1 一行没写 |
 | 2026-11-23/24 | 教学 session（按用户反馈修订） | **去掉“先用一两周再攒摩擦”的门槛**（推进规则，ROADMAP/HANDOFF/OPENING_PROMPT/STATE 统一）；p16 口径统一成“按规格实现、测试不动、如实报告”；新记 `--preset` 盖 `--thinking`（G7）、`compat` 照样生效（F9，更正了 HANDOFF §5.9）、`agent_before_settle`（F8）；FACTS 的 suite1/think-low 标签按日期改准、I4 补逐句累计；跨账号说明；ROADMAP：v1.1 非包文件同步约定、v1.2 不单列 `plan` 档并评估 `grep/find/ls`、v1.3 检查点改按用户消息 + 每轮花费一行、v1.4 采用 `plan-mode` 并以 `agent_before_settle` 做验证闭环；`collect-state.py` 补打模型级 `compat`；`seed-check.sh` 加 G7 检查 | v1.0.0；v1.1 一行没写 |
 | 2026-11-24 | 教学 session（推送） | 用户装好 Claude GitHub App 后，`main` 推上 `gnk48lb/pinew`（`git ls-remote` 核对过）；推 tag `v1.0.0` 被 403（`POST git-receive-pack`，同一接口推分支是 200；连试 4 次一样），后来查到官方文档写明这是云端会话 GitHub 代理的有意限制（FACTS F11），没绕——记进 HANDOFF §5.17；发版标记改成“`Release vX.Y.Z` 提交 + 版本号 + CHANGELOG”（ROADMAP 规则 6、v1.1 “版本怎么认”）；实测 `pi install git:…` 的提交号/`@main`/不带 ref 三种写法（FACTS F10）；备好可选的 `tools/github/auto-tag.yml`（用户在网页上粘一次才生效）；新账号的第一个会话是普通聊天（没有 `add_repo`，只能要附件）→ `OPENING_PROMPT.md` 重写成“云端会话 claude.ai/code 选仓库”，`.claude/CLAUDE.md` 加了常驻规则 | `main` 在 GitHub 上；远端没有 tag；v1.1 一行没写 |
+| 2026-11-24 | 教学 session（改附件模式） | 用户新账号是免费版（云端会话不可用：官方文档 + Engadget）→ OPENING_PROMPT 改成“新开普通对话 + 传附件 + 粘开场消息”，HANDOFF §8 加附件模式，ROADMAP v1.1 加 `update --from <tar.gz>` 与 Downloads 路径，FACTS F12；重新打包 `pinew.tar.gz`/`pinew.zip` | 等用户在新账号开第一个会话；v1.1 一行没写 |

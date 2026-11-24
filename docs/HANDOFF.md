@@ -6,7 +6,7 @@
 
 - **谁、在做什么**：用户 gnk48lb（说中文，时区台北 UTC+8）用 **pi**（pi.dev 的终端 coding agent，当前 **1.5.0**）。过去一个多月，上一个 session 带他把 pi 调成了“v1”，并在他的 WSL、他的网关和他现在的模型上实测了：钱花在哪、缓存怎么断、每样东西占多少前缀（第 0–8 课，教学已经结束）。
 - **现在的目标变了**：不再教学，而是把 **pinew**（本仓库）从 v1 一版版迭代成**他每天真用的主力 coding agent**。先补两块短板：①开局多档位（现在只有 explore / deep 两个 preset）；②日常主力缺的功能（撤得回改动、计划/待办、验证闭环，其次是子代理、逐轮花费）。顺序和验收见 `ROADMAP.md`。
-- **分工**：**你做全部改动、提交、推送**。用户只配合三件事：在他的 WSL 里跑你给的**一条**命令并整段贴回输出；回答是/否或二选一；（有的话）说用着哪里别扭。别让他手动改文件、别让他打一串 git 命令。
+- **分工**：**你做全部改动、提交、推送**（推不了 GitHub 的免费账号用“附件模式”交 tar.gz，§8）。用户只配合三件事：在他的 WSL 里跑你给的**一条**命令并整段贴回输出；回答是/否或二选一；（有的话）说用着哪里别扭。别让他手动改文件、别让他打一串 git 命令。
 - **推进规则（用户 11-23 定的，最重要的一条）**：**没有“先用一两周、攒出摩擦再做”的门槛。**他是个懒人（原话），不想拿半成品硬当主力熬着，要你先主动把 pinew 打磨到顺手、靠谱，他再重度上手。所以：按 `ROADMAP.md` 的顺序 v1.1 → v1.2 → v1.3 → v1.4 → v1.5 → v2.0 → v3 以后**连续推进**，他没报摩擦也**不停下来等**；他报了摩擦就记进 `FRICTION.md` 并**插队**；验收看可测的标准（`check.py`、mock、真网关量一次、真机一条冒烟命令），**不看“他用了多久”**；他全力配合（跑命令、贴输出、二选一），需要就直接要，把要他做的事合并成一条。只有两种情况停下来等他：要他拍板的事，或要他在 WSL 里跑一条命令才能继续的验证——结束这一轮前先把不依赖他的活做完。完整规则见 `ROADMAP.md` 开头。
 - **起点**：本仓库 `v1.0.0` = 实测过的 v1 **字节级原样**（旧文档里叫“v1.2”，哈希见 `docs/baseline/v1-SHA256SUMS.txt`）+ 一层 pi 包的外壳。v1 在 DeepSeek 时代的评测里“没测出伤害，也没测出收益”（FACTS §J），所以后面的改进靠**每版的可测验收 + 真机冒烟 + 他随时报的摩擦（插队）**，不靠比赛。
 - **节奏**：轻快务实。小步、能装、能回滚；不再冻结 v1，不再默认写预测登记。只守四条（§4）：缓存前缀只追加、数字带标签、小步提交+CHANGELOG+STATE、基本验证。
@@ -35,7 +35,7 @@ v1 明显的短板（用户的原话：“底座稳，但东西精简、配置�
 | | 你的沙箱（云容器） | 用户的 WSL |
 |---|---|---|
 | 真模型/网关 | **够不到**。只有 `dev/mock_gw.py` 模拟网关（会按前缀模拟缓存，但它不是真实网关的证据） | 本地网关 **magpie**（`http://127.0.0.1:3425/v1`，10-19 的探测值，现在可能已变），当前模型 `MiniMax-M3.1-Flash`（日志里的路由名有 `minimax-code-global/…`（第 2–5 课）和 `minimax-code/…`（第 6–8 课）两种，以 `collect-state.py` 打出的 models.json 为准） |
-| 能做 | 装真 pi（`npm i @earendil-works/pi-coding-agent@1.5.0`）、跑 RPC/print/json、验证包加载、安全带、预设、前缀逐轮追加、写脚本、推 GitHub | 真实 token/命中/花费、真实使用手感、安装迁移的最后一公里 |
+| 能做 | 装真 pi（`npm i @earendil-works/pi-coding-agent@1.5.0`）、跑 RPC/print/json、验证包加载、安全带、预设、前缀逐轮追加、写脚本、推 GitHub（云端会话里；免费账号的附件模式推不了，见 §8） | 真实 token/命中/花费、真实使用手感、安装迁移的最后一公里 |
 | Node | 22 | 24.15.0（nvm） |
 | 其它 | 没有他的 `~/.pi/agent` | Ubuntu on WSL2（约 2 CPU / 7.8 GB 内存 / 8 GB swap，宿主 16 GB）；pi 是 **pi.dev 托管安装**（`~/.local/bin/pi → ~/.pi/agent/bin/pi`）；**没有 jq**（用 python）；HTTP 代理 `127.0.0.1:7897`，`NO_PROXY` 含 127.*；Docker 已装但 WSL 集成没开；WSL 里还有锁了版本的 Claude Code 2.1.302（对比已搁置，不要提） |
 
@@ -110,7 +110,7 @@ v1 明显的短板（用户的原话：“底座稳，但东西精简、配置�
 
 ## 8. 开工第一小时怎么走
 
-1. 读 `STATE.md`、`git log -10`。仓库：在云端会话（claude.ai/code）里用户已在仓库选择器选了 `gnk48lb/pinew`，它就在你的工作目录里；没有的话 `add_repo(owner="gnk48lb", repo="pinew", access="push")`。确认能 `git push origin HEAD:main`（直接推 main，不走 PR）；推不了就一句话告诉用户缺什么，别绕（普通聊天/普通 Project 里没有挂载和推送，要请用户改到云端会话，见 `OPENING_PROMPT.md`）。
+1. 读 `STATE.md`、`git log -10`。仓库的来源按顺序试：①云端会话里用户已在仓库选择器选了 `gnk48lb/pinew`，它就在工作目录里；②`add_repo(owner="gnk48lb", repo="pinew", access="push")`；③**附件模式**（用户的新账号是免费版：云端会话是 Pro/Max/Team 的功能，Engadget 2026-06 也说免费版不能用 Claude Code；普通聊天里没有 `add_repo`，推不了 GitHub；FACTS F12）：用户把 `pinew.tar.gz`（或 `.zip`，含 `.git`）当附件传给你；沙箱能访问 github.com 时也可以 `git clone https://github.com/gnk48lb/pinew`（公开仓库）对照，两份不一致以 `STATE.md` 的“最后更新”更晚者为准。有推送权限时确认能 `git push origin HEAD:main`（直接推 main，不走 PR）。**附件模式下不要再提 push**：每个工作段结束，把整个仓库（含 `.git`）打成 `pinew-YYYYMMDD-<提交号>.tar.gz` 交给用户（传不上就改 zip），并说“下载保存，下次新对话把最新的传给我”；要装到他的 WSL 时给**一条**命令，让它去 Windows 的 Downloads 里找最新的 `pinew-*.tar.gz`（`collect-state.py` 先补一项：打印 Windows 的 Downloads 路径，WSL 里 `cd /mnt/c && cmd.exe /c "echo %USERPROFILE%"`，没测过）。GitHub 上的 `main` 在附件模式下不会更新，WSL 上要跑的新脚本只能从 tar.gz 里来。先用一条命令查沙箱能不能联网装包（`npm view @earendil-works/pi-coding-agent version`）；不能就一句话告诉用户要在设置里打开哪一项，别绕。
 2. 搭沙箱：`mkdir -p ~/rt && cd ~/rt && npm i @earendil-works/pi-coding-agent@1.5.0`；`cp dev/env.sh.example dev/env.sh` 并按需改；建隔离的 `PI_CODING_AGENT_DIR`，把 `dev/models.mock.json` 放成它的 `models.json`；`dev/mock.sh start`；`python3 dev/rpc_commands.py` 应列出 `/preset`、5 个提示模板、2 个技能（`dev/README.md` 有全套）。
 3. 官方文档和示例就在 npm 包里：`$RT/node_modules/@earendil-works/pi-coding-agent/{docs,examples/extensions}`。
 4. **让用户做一件事**：在 WSL 里 `git clone https://github.com/gnk48lb/pinew ~/pinew && python3 ~/pinew/tools/collect-state.py`，整段贴回来（只读、无网络、密钥打码）。它会告诉你：pi 怎么装的、`~/.pi/agent` 里 v1 的 12 个文件哪些一致/被改过/缺失、他有没有自己加的扩展、models.json 里有哪些模型和价格、有没有已装的包。**安装器按这份输出设计，不要凭想象。**

@@ -94,6 +94,7 @@
 | F7 | `before_agent_start` 里每轮追加消息是安全的（K2），改系统提示不安全（K1） | B3 |
 | F8 | **`agent_before_settle`**（pi 文档里“最后一个可操作的边界”，另有可操作的 `turn_end`；`agent_settled` 只通知、不能续跑）：处理器返回 `{ entries: [...event.entries, {type:"custom_message", customType, content, display:false}], continue: true }` 就追加条目并保证再发一次请求；文档示例用一个布尔旗标防重复；用户中止（Esc）时条目照提交、续跑被抑制。**v1.4 验证闭环的钩子线索**（旧路线图的候选表里就写着它） | [src] pi 1.5.0 `docs/extensions.md` 与 CHANGELOG；**没跑过**，用前先写 mock 契约测试 |
 | F9 | models.json 的 `compat`：provider 级与模型级会合并，**模型值逐字段覆盖 provider 值，适用哪些字段取决于模型的 `api`**（pi 文档 `docs/models-configuration.md` “Compatibility”）。用户的真配置：provider 级 `api: openai-completions` + `compat.sendSessionAffinityHeaders: true`，模型条目 `api: anthropic-messages` → `x-session-affinity` 照常发出（L2）。S11-23 复测（嗅探服务器看请求头，请求路径 `/v1/messages?beta=true`）：provider=anthropic：无 compat 无头、provider 级 compat 有头、模型级 compat 有头；provider=openai-completions + 模型=anthropic：无 compat 无头、provider 级 compat 有头、模型级 compat 有头。不起作用的是属于**另一种 `api`** 的字段 | L2、S11-23 [mock，pi 1.5.0] |
+| F10 | `pi install git:github.com/gnk48lb/pinew` 三种写法都装得上：`@<完整提交号>`（输出 `HEAD is now at 5a343e4`）、`@main`、不带 ref；`pi list` 列出；克隆在 `$PI_CODING_AGENT_DIR/git/github.com/gnk48lb/pinew`。pi 的文档（`docs/packages.md`）：git 的 tag 和提交号是 pinned，包更新不会移动已配置的 ref，分支则跟着走。`@v1.x.y` 没法测（远端没有 tag，见 K）；带斜杠的分支名没测 | S11-24 [沙箱，pi 1.5.0，隔离的 HOME 和 agent 目录，n=3（各 1 次）] |
 
 ## G. 预设与 MCP（L6，n=5–8）[MM]
 
@@ -152,7 +153,8 @@
 - 没测：更难题上档位是否起作用；思考超过 2048 时预算是否起作用；adaptive 发法下缓存命中是否改变；`api` 路径的 `reasoning_effort` 是否传到模型（`reasoning_tokens` 在 OpenAI 接口上恒为 0，不可信，要看输出总数）。
 - 没测：缓存寿命 15–30 分钟；`/compact` 手动；`/tree`；`/fork` 交互；`--resume` 超过 30 分钟；压缩后模型还记不记得要用的事实（L8 测了一部分）。
 - 没测：`grep`/`find`/`ls` 三个工具的前缀代价在 MiniMax 上没量过（§C 只量了 read 和默认四件套）；旧估算约 +0.61k token [mock，pi 1.3.0，按 3.6 字符/token 折算，±15%]。带上它们对轮数/成功率的影响也没测（`explore` 档在用，编码档没带）。
-- 没测：v1 在 MiniMax 上的任务成功率；安全带在日常命令上的误拦率；子代理在真实任务上的回本点；Windows/WSL 路径边角（`/mnt/c`、CRLF 项目）；`git:` 方式安装；`pi update` 后的行为（1.3→1.4→1.5 两次演练过，对 v1 无影响）。
+- 没测：v1 在 MiniMax 上的任务成功率；安全带在日常命令上的误拦率；子代理在真实任务上的回本点；Windows/WSL 路径边角（`/mnt/c`、CRLF 项目）；`git:` 方式安装在用户 WSL 上（沙箱里 11-24 测过提交号/`@main`/不带 ref，见 F10；`@tag` 形式没法测）；`pi update` 后的行为（1.3→1.4→1.5 两次演练过，对 v1 无影响）。
+- 没解释（环境）：从会话里推 tag 被 403，推分支正常（git 2.43.0，会话的 git 代理，`gnk48lb/pinew`，2026-11-24；带注解的 tag，请求体 364 字节：`GET info/refs?service=git-receive-pack` 200 → `POST git-receive-pack` 403；n=4，次次一样；`main` 走同一接口返回 200）。原因（只放行分支 / 与带注解的 tag 对象有关 / 授权范围）没查；轻量 tag 没试，也不要换花样去绕。对策见 HANDOFF §5.17。
 - 没解释（别追）：K3 的 5/10；同一种“只改最后一个词”探针 93% 而 api 第 4 行 0%；pi 同会话追加只命中 3840/6038（63.6%）而新会话 97.8%；api 路径寿命不单调；deferred 的 +226 对 +292；PT 第 3 次运行第 2 句的没命中量 25,104（其余 4,295–4,507）；`plain-request` 配置两次都用了 2 个请求。
 - 候选解释（分不开）：缓存只在标记位置命中、块存储写入有延迟、请求被路由到不同机器。
 

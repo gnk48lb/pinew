@@ -11,7 +11,7 @@
 3. **他报了摩擦就插队**：记进 `FRICTION.md`（日期 · 场景 · 现象），排到当前版本之前处理；同类第二次升为高优先级。
 4. **验收用可测的标准**：`tools/check.py`、mock 场景、在真网关量一次、他在真机跑一条冒烟命令——**不用“他用了多久”**。他全力配合（跑验证命令、贴输出、二选一拍板），需要就直接要，并且把要他做的事合并成一条。
 5. **只有两种情况会停下来等他**：要他拍板的事（口味、风险、不可逆的决定），或要他在 WSL 里跑一条命令才能继续的验证。结束这一轮之前，先把不依赖他答案的活做完（沙箱里的实现、mock 验证、下一版的预研）。
-6. 没有“先熬两周”的缓冲，坏版本更容易到他手上，所以：`main` 随时可发布、每版都有 tag、`pinew.py update` 默认只拉 tag（`--to <tag>` 可锁定/退回）、有风险的改动先让他冒烟一次（DoD §3.4）。
+6. 没有“先熬两周”的缓冲，坏版本更容易到他手上，所以：`main` 随时可发布、每版都有发版标记（首选 git tag；**旧 session 里推 tag 被 403、推分支正常**，所以第一次发版先试推一次，403 就改用“`Release vX.Y.Z` 提交 + 提交号”，别反复重试，见 HANDOFF §5.17）、`pinew.py update` 默认只拉发版标记（`--to <标记>` 可锁定/退回）、有风险的改动先让他冒烟一次（DoD §3.4）。
 
 ## 0. 先看这几条
 
@@ -41,6 +41,7 @@
 - 迁移规则（HANDOFF §5.1 的双装崩溃是死穴）：对 v1 的 12 个文件逐个比对基线哈希——一致 → 删掉复制品；被改过 → 搬进备份并提示；用户自己加的文件 → 不碰；**只按文件名精确动手，绝不整目录删**（`~/.pi/agent/` 同时是托管安装的根）。然后 `pi install <本地路径>`，再放置 `AGENTS.md`、合并 `settings.json`。
 - **缺 `presets.json` 时 `--preset` 静默无效**（HANDOFF §5.2）：优先让 `preset.ts` 把包内 `config/presets.json` 当最底层默认读（单一来源，`git pull` 即生效）；做不到再让安装器放置。这是对基线文件 `preset.ts` 的**有意改动**，写进 CHANGELOG。
 - **非包文件怎么同步**：pi 只从包里加载 `extensions/ skills/ prompts/ themes/`，`AGENTS.md`/`settings.json` 不是包资源，只能由安装器放置，所以光 `git pull` 同步不到它们。**默认定案（可改，但要写理由）：带哈希记录的拷贝，不用符号链接。** 理由：符号链接会让 `git pull`/切分支悄悄改掉正在使用的 AGENTS.md（运行中的会话改系统提示 = 整段缓存重付，FACTS B3）；用户改符号链接指向的文件等于弄脏仓库；`undo` 的语义也更干净。配套：`pinew.py status` 对每个放置的文件报告“同步 / 仓库有新版（可更新）/ 用户改过（只提示，绝不覆盖）/ 被删”；`pinew.py update` = `git pull`（默认拉到最新 tag，`--to <tag>` 可锁定/退回）+ 对“仓库有新版且用户没改过”的文件 `sync` + 自检，是用户以后升级要敲的**唯一**命令。`settings.json` 只合并我们拥有的键（`defaultThinkingLevel`、`showCacheMissNotices`），不整体覆盖。`presets.json` 按上一条让 `preset.ts` 读包内默认，这样非包文件只剩 `AGENTS.md` 和 `settings.json`。
+- **版本怎么认**（HANDOFF §5.17：从会话里推 tag 会被 403）：`pinew.py` 不能依赖远端有 tag。把“版本”定义为 **tag ∪ 标题为 `Release vX.Y.Z` 的提交**（`git tag -l 'v*'` 和 `git log --grep '^Release v'`；指向同一个提交的算同一个版本）。本地路径安装（主路径）的 `update` = 在 `main` 上 `git pull` + 同步非包文件，`--to <版本>`/退回 = `git checkout <提交>` + 同步；`git:` 方式安装用完整提交号锁版本（已实测，FACTS F10）。每次发版的提交同时 bump `package.json`、写 `CHANGELOG.md` 条目。用户若一次性装了 `tools/github/auto-tag.yml`，GitHub 会自动补出真 tag，`pinew.py` 不用改。
 - `tools/check.py`（沙箱里一条命令，无网络、不花钱、≤2 分钟）：①包加载无重复无报错（`dev/rpc_commands.py`）②安全带仍拦 `rm -rf old`（print 模式）③`--preset explore/deep` 生效（工具表 + 指令都变）④三轮会话前缀逐轮严格追加（mock 的请求转储）⑤发给模型的 system+tools 与基线快照字节一致（有意改动要 `--update-golden` 并写 CHANGELOG）⑥基线文件哈希 ⑦密钥扫描 ⑧安装器场景（假 HOME：全新 / 复制式 v1 / 被改过的 v1 / 带用户自己的文件 / 被强杀的断点），`undo` 后与安装前逐字节一致。
 - `tools/smoke.*`（用户在 WSL 跑，两三条命令，<$0.002）：迁移前后各跑一次固定的 `pi -p … --mode json --no-session`，对比首个请求的 `input+cacheRead+cacheWrite`（应相等，容差 ±70 即已知异常 B12）。
 
@@ -48,7 +49,7 @@
 - 沙箱：`python3 tools/check.py` 全绿；假 HOME 里改了仓库的 `AGENTS.md` 后 `status` 报“仓库有新版”，`update` 同步它；用户改过的那份不被覆盖。
 - WSL：`pinew.py install --dry-run` 打印的计划与 `collect-state.py` 的输出一致；正式安装后 `pi list` 里 pinew 只出现一次，`dev/rpc_commands.py` 列出的命令和装之前相同；`pi --preset explore` 生效；`undo` 能回到装之前；烟测前后首请求 token 数相等。
 - 前缀：`+0 tokens/request`（只是搬家，不该变）。
-- 打 tag `v1.1.0`，STATE/CHANGELOG 更新。
+- 发版 `v1.1.0`（提交标题 `Release v1.1.0`；能推 tag 就打，推不上见 HANDOFF §5.17），STATE/CHANGELOG 更新。
 
 用户要做的：贴 `collect-state` 输出 → 看 `--dry-run` 计划说“好” → 贴安装输出 → 跑烟测贴结果。（共 4 次，每次一条命令。）
 
@@ -125,7 +126,7 @@
 2. `CHANGELOG.md` 有条目，含 `prefix: +N tokens/request`（没有就写 0，并说明怎么量的、带标签）；`package.json` 版本号同步。
 3. 迁移/卸载：新增会落到 `~/.pi/agent/` 的东西，必须有 `--dry-run`、`undo`，并在假 HOME 里测过。
 4. 会进模型请求的改动（工具、技能、规则、MCP）：前缀成本已量；有风险的（新工具、改请求的钩子、动安全带/预算护栏）让用户真机冒烟一次（一条命令，先说明花多少钱、多久、会不会改他的机器）。
-5. `docs/STATE.md` 更新；新实测数字写进 `FACTS.md`（带 `[模型, pi 版本, n, 真网关/mock]`）；tag；推送。
+5. `docs/STATE.md` 更新；新实测数字写进 `FACTS.md`（带 `[模型, pi 版本, n, 真网关/mock]`）；发版标记（`Release vX.Y.Z` 提交，能推 tag 就加）；推送。
 6. 用户听得懂的一句话：这一版他会感觉到什么。
 
 ## 4. 实验纪律（轻量版）
@@ -153,7 +154,7 @@
 |---|---|
 | pi 升级改语义（1.5.0 的校验改了；近 30 天 15 个版本） | `pinew.py status` 提示“pi 版本与上次自检不同”；升级前走隔离试装（v2.0 自动化）；语义变过的事件写契约测试 |
 | 用户换模型/网关 | FACTS 的每个数都绑定模型；换了就跑“重测套件”（v5）或至少重量前缀和断缓存 |
-| 没有“先熬两周”的缓冲，坏版本更容易直接到他手上 | `main` 随时可发布、每版有 tag；`pinew.py update` 默认只拉 tag，`--to <tag>` 可锁定/退回，`undo` 可整体撤；有风险的改动（新工具、改请求的钩子、动安全带/预算护栏）先让他冒烟一次再发 tag（DoD §3.4） |
+| 没有“先熬两周”的缓冲，坏版本更容易直接到他手上 | `main` 随时可发布、每版有发版标记（tag 推不上时用 `Release vX.Y.Z` 提交，HANDOFF §5.17）；`pinew.py update` 默认只拉发版标记，`--to <标记>` 可锁定/退回，`undo` 可整体撤；有风险的改动（新工具、改请求的钩子、动安全带/预算护栏）先让他冒烟一次再发版（DoD §3.4） |
 | 迁移把用户的 `~/.pi/agent` 弄坏 | 只按文件名动手；`--dry-run`；`undo`；永远不整目录删；先在假 HOME 里测 |
 | 新扩展拥有用户的全部权限 | 命令执行类（验证、检查点）必须走安全带；撤销类先给检查点 |
 | 实验烧钱/占机器 | §4 的预算与告知 |

@@ -1,0 +1,59 @@
+# OPTIONAL, one-time setup by the repo owner (not by a Claude session).
+#
+# Why this exists: a Claude session can push branches to gnk48lb/pinew but its
+# `git push` of a tag is refused with HTTP 403 (docs/HANDOFF.md section 5.17), and
+# the Claude GitHub App normally cannot create files under .github/workflows/
+# either. So this file lives here, where GitHub does NOT run it, and the owner
+# pastes it once into the web UI if real tags are wanted:
+#
+#   github.com/gnk48lb/pinew -> Add file -> Create new file
+#   name:  .github/workflows/auto-tag.yml   (typing the slashes makes the folders)
+#   body:  this whole file
+#   then "Commit changes" on main.
+#
+# After that, on every push to main GitHub itself looks at package.json: if the
+# tag v<version> does not exist yet, it creates it (annotated) on the first commit
+# that introduced that version string (falls back to the pushed commit). It does
+# nothing when the tag already exists, so it is safe to run on every push.
+# The first run (the commit that adds this file) therefore creates v1.0.0.
+#
+# Not needed for anything to work: without it, releases are marked by a commit
+# titled "Release vX.Y.Z" plus the package.json version and the CHANGELOG entry.
+# Status: the shell logic was tested against local repositories (11-24); it has NOT
+# been run on GitHub Actions yet.
+name: auto-tag
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create the tag for package.json's version if it is missing
+        run: |
+          set -euo pipefail
+          ver=$(node -p "require('./package.json').version")
+          tag="v${ver}"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            echo "${tag} already exists"
+            exit 0
+          fi
+          sha=$(git log --format=%H -S"\"version\": \"${ver}\"" -- package.json | tail -n 1)
+          sha=${sha:-$GITHUB_SHA}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${tag}" -m "${tag}" "${sha}"
+          git push origin "refs/tags/${tag}"
+          echo "created ${tag} at ${sha}"
